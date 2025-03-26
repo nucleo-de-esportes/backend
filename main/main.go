@@ -10,11 +10,18 @@ func main() {
 
 	supbaseClient := config.InitSupabase()
 
-	request := gin.Default()
+	router := gin.Default()
 
-	request.POST("/turma", func(c *gin.Context) {
+	turmaRoutes := router.Group("/turmas")
+
+	turmaRoutes.POST("", func(c *gin.Context) {
 		controller.CreateTurma(c, supbaseClient)
 	})
 
-	request.Run(":8080")
+	//turmaRoutes.DELETE("/:id", func(c *gin.Context) {
+	//	controller.DeleteTurma(c, supbaseClient)
+
+	//})
+
+	router.Run(":8080")
 }

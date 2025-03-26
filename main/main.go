@@ -18,10 +18,10 @@ func main() {
 		controller.CreateTurma(c, supbaseClient)
 	})
 
-	//turmaRoutes.DELETE("/:id", func(c *gin.Context) {
-	//	controller.DeleteTurma(c, supbaseClient)
+	turmaRoutes.DELETE("/:id", func(c *gin.Context) {
+		controller.DeleteTurma(c, supbaseClient)
 
-	//})
+	})
 
 	router.Run(":8080")
 }

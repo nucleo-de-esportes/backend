@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,33 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Turma criada com sucesso",
 		"data":    result,
+	})
+
+}
+
+func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
+
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	turmaIdString := strconv.FormatInt(turmaId, 10)
+
+	err = supabase.DB.From("turma").Delete().Eq("turma_id", turmaIdString).Execute(nil)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao deletar a turma",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Turma deletada com sucesso!",
+		"deletedId": turmaId,
 	})
 
 }

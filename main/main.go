@@ -23,5 +23,9 @@ func main() {
 
 	})
 
+	turmaRoutes.GET("/:id", func(c *gin.Context) {
+		controller.ViewTurma(c, supbaseClient)
+
+	})
 	router.Run(":8080")
 }

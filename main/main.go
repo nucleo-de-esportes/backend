@@ -27,5 +27,10 @@ func main() {
 		controller.ViewTurma(c, supbaseClient)
 
 	})
+
+	turmaRoutes.GET("", func(c *gin.Context) {
+		controller.GetAllTurmas(c, supbaseClient)
+
+	})
 	router.Run(":8080")
 }

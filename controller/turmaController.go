@@ -93,3 +93,19 @@ func ViewTurma(c *gin.Context, supabase *supabase.Client) {
 
 	c.JSON(http.StatusOK, viewTurma)
 }
+
+func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
+
+	var turmas []Turma
+	err := supabase.DB.From("turma").Select("*").Execute(&turmas)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar turmas",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, turmas)
+}

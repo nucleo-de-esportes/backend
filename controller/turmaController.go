@@ -10,7 +10,8 @@ import (
 )
 
 type Turma struct {
-	Horario         time.Time `json:"horario"`
+	Horario_Inicio  time.Time `json:"horario_inicio"`
+	Horario_Fim     time.Time `json:"horario_fim"`
 	LimiteInscritos int64     `json:"limite_inscritos"`
 	Dia_Semana      string    `json:"dia_semana"`
 	Sigla           string    `json:"sigla"`
@@ -70,25 +71,25 @@ func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 }
 
 func ViewTurma(c *gin.Context, supabase *supabase.Client) {
-    
-    turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
-        return
-    }
-    
-    turmaIdString := strconv.FormatInt(turmaId, 10)
-    
-    var viewTurma Turma
-    err = supabase.DB.From("turma").Select("*").Eq("turma_id", turmaIdString).Execute(&viewTurma)
-    
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error": "Erro ao buscar a turma",
-            "causa": err.Error(),
-        })
-        return
-    }
-    
-    c.JSON(http.StatusOK, viewTurma)
+
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	turmaIdString := strconv.FormatInt(turmaId, 10)
+
+	var viewTurma []Turma
+	err = supabase.DB.From("turma").Select("*").Eq("turma_id", turmaIdString).Execute(&viewTurma)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar a turma",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, viewTurma)
 }

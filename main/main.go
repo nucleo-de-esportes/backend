@@ -24,13 +24,17 @@ func main() {
 	})
 
 	turmaRoutes.GET("/:id", func(c *gin.Context) {
-		controller.ViewTurma(c, supbaseClient)
+		controller.GetTurmaById(c, supbaseClient)
 
 	})
 
 	turmaRoutes.GET("", func(c *gin.Context) {
 		controller.GetAllTurmas(c, supbaseClient)
 
+	})
+
+	turmaRoutes.PUT("/:id", func(c *gin.Context) {
+		controller.UpdateTurma(c, supbaseClient)
 	})
 	router.Run(":8080")
 }

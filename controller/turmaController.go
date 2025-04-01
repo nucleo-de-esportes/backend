@@ -70,7 +70,7 @@ func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 
 }
 
-func ViewTurma(c *gin.Context, supabase *supabase.Client) {
+func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -108,4 +108,35 @@ func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 	}
 
 	c.JSON(http.StatusOK, turmas)
+}
+
+func UpdateTurma(c *gin.Context, supabase *supabase.Client) {
+
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	turmaIdString := strconv.FormatInt(turmaId, 10)
+
+	var newTurma Turma
+
+	if err := c.ShouldBindJSON(&newTurma); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
+		return
+	}
+
+	var updatedTurma []Turma
+	err2 := supabase.DB.From("turma").Update(newTurma).Eq("turma_id", turmaIdString).Execute(&updatedTurma)
+
+	if err2 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao tentar atualizar turma",
+			"causa": err2.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedTurma)
 }

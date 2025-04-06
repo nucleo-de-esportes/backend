@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nucleo-de-esportes/backend/config"
 	"github.com/nucleo-de-esportes/backend/controller"
@@ -11,6 +12,8 @@ func main() {
 	supbaseClient := config.InitSupabase()
 
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	turmaRoutes := router.Group("/turmas")
 

@@ -3,20 +3,19 @@ package controller
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nedpals/supabase-go"
 )
 
 type Turma struct {
-	Horario_Inicio  time.Time `json:"horario_inicio"`
-	Horario_Fim     time.Time `json:"horario_fim"`
-	LimiteInscritos int64     `json:"limite_inscritos"`
-	Dia_Semana      string    `json:"dia_semana"`
-	Sigla           string    `json:"sigla"`
-	Local_Id        int64     `json:"local_id"`
-	Modalidade_Id   int64     `json:"modalidade_id"`
+	Horario_Inicio  string `json:"horario_inicio"`
+	Horario_Fim     string `json:"horario_fim"`
+	LimiteInscritos int64  `json:"limite_inscritos"`
+	Dia_Semana      string `json:"dia_semana"`
+	Sigla           string `json:"sigla"`
+	Local_Id        int64  `json:"local_id"`
+	Modalidade_Id   int64  `json:"modalidade_id"`
 }
 
 func CreateTurma(c *gin.Context, supabase *supabase.Client) {
@@ -25,6 +24,13 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	if err := c.ShouldBindJSON(&newTurma); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
+		return
+	}
+
+	if newTurma.LimiteInscritos > 30 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Limite de 30 inscritos ultrapassado",
+		})
 		return
 	}
 

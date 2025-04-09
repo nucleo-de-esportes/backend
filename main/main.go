@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nucleo-de-esportes/backend/config"
@@ -8,8 +9,11 @@ import (
 )
 
 func main() {
+	env := flag.String("vars", "file", "Defines from where to load env vars: file or exported")
 
-	supbaseClient := config.InitSupabase()
+	flag.Parse()
+
+	supbaseClient := config.InitSupabase(*env)
 
 	router := gin.Default()
 

@@ -9,12 +9,13 @@ import (
 	"github.com/nedpals/supabase-go"
 )
 
-func InitSupabase() *supabase.Client {
+func InitSupabase(env string) *supabase.Client {
+	if env == "file" {
+		err := godotenv.Load(filepath.Join("..", "supabase.env"))
 
-	err := godotenv.Load(filepath.Join("..", "supabase.env"))
-
-	if err != nil {
-		log.Fatal(err.Error())
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 	}
 
 	supaUrl := os.Getenv("SUPABASE_URL")

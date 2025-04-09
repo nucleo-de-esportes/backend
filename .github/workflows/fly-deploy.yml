@@ -4,8 +4,7 @@ name: Fly Deploy
 on:
   push:
     branchs:
-      - ci/habilitar-deploy
-  workflow_dispatch:
+      - main
 jobs:
   deploy:
     name: Deploy app

@@ -26,3 +26,17 @@ Executar:
 go run ./...
 ```
 
+## Estrutura do projeto
+
+```
+.
+├── config/            # Configurações do sistema
+│   └── supabase.go    # Conexão com o Banco de dados
+│
+├── controller/        # Funcionalidades do sistema
+├── main/              # Arquivo principal
+├── go.mod             # Dependências da linguagem
+└── go.sum             # Configuração de dependências
+
+```
+

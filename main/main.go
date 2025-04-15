@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nucleo-de-esportes/backend/config"
@@ -43,5 +45,11 @@ func main() {
 	turmaRoutes.PUT("/:id", func(c *gin.Context) {
 		controller.UpdateTurma(c, supbaseClient)
 	})
-	router.Run(":8080")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8080"
+	}
+
+	router.Run(port)
 }

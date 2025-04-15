@@ -11,10 +11,10 @@ primary_region = 'gru'
     GO_VERSION = '1.24.1'
 
 [env]
-  PORT = ':80'
+  PORT = ':443'
 
 [http_service]
-  internal_port = 80
+  internal_port = 443
   force_https = true
   auto_start_machines = true
   auto_stop_machines = "stop"

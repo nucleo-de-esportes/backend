@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for backend-patient-river-7577 on 2025-04-08T22:27:21-03:00
+# fly.toml app configuration file generated for backend-ancient-glitter-1627 on 2025-04-15T20:50:19-03:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'backend-patient-river-7577'
+app = 'backend-ancient-glitter-1627'
 primary_region = 'gru'
 
 [build]
@@ -11,17 +11,17 @@ primary_region = 'gru'
     GO_VERSION = '1.24.1'
 
 [env]
-  PORT = ':443'
+  PORT = ':8080'
 
 [http_service]
-  internal_port = 443
+  internal_port = 8080
   force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  auto_stop_machines = "stop"
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1

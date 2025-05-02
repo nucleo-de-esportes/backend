@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nedpals/supabase-go"
+	"github.com/nucleo-de-esportes/backend/model"
 )
 
 type Turma struct {
@@ -31,6 +32,17 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Limite de 30 inscritos ultrapassado",
 		})
+		return
+	}
+
+	var validateLocal []model.Local
+
+	localIdString := strconv.FormatInt(newTurma.Local_Id, 10)
+
+	invalidId := supabase.DB.From("local").Select("*").Eq("local_id", localIdString).Execute(&validateLocal)
+
+	if invalidId != nil || len(validateLocal) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Local não encontrado"})
 		return
 	}
 

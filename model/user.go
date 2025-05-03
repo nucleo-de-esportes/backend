@@ -22,7 +22,7 @@ func (u UserType) ConvertToString() string {
 }
 
 type User struct {
-	User_id   uuid.UUID `json: "user_id"`
-	User_type UserType  `json: "user_type"`
-	Email     string    `json: "email"`
+	User_id   uuid.UUID `json:"user_id"`
+	User_type UserType  `json:"user_type"`
+	Email     string    `json:"email"`
 }

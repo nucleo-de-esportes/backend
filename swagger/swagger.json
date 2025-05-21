@@ -54,7 +54,7 @@
                 "summary": "Cria uma nova turma",
                 "parameters": [
                     {
-                        "description": "Dados da nova turma",
+                        "description": "Dados da nova turm",
                         "name": "turma",
                         "in": "body",
                         "required": true,

@@ -16,7 +16,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.22 # ou sua versão
+          go-version: 1.22 
 
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest

@@ -93,3 +93,64 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 	})
 
 }
+
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginResponse struct {
+	User_id   uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	User_type string    `json:"user_type"`
+	Nome      string    `json:"nome"`
+	Token     string    `json:"token"`
+}
+
+func LoginUser(c *gin.Context, supabase *supa.Client) {
+
+	var data LoginRequest
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email ou senha incorretos"})
+		return
+	}
+
+	login, err := supabase.Auth.SignIn(c, supa.UserCredentials{
+		Email:    data.Email,
+		Password: data.Password,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Falha ao tentar autenticar usuário",
+			"details": err.Error(),
+		})
+		return
+
+	}
+
+	var userData []model.User
+
+	err = supabase.DB.From("usuario").Select("*").Eq("user_id", login.User.ID).Execute(&userData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao tentar buscar informações do usuário",
+			"details": err.Error()})
+		return
+	}
+
+	response := LoginResponse{
+		User_id:   uuid.MustParse(login.User.ID),
+		Email:     userData[0].Email,
+		User_type: userData[0].User_type.ConvertToString(),
+		Nome:      userData[0].Nome,
+		Token:     login.AccessToken,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login realizado com sucesso!",
+		"usuario": response,
+	})
+
+}

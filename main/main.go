@@ -52,6 +52,10 @@ func main() {
 		controller.RegsiterUser(c, supbaseClient)
 	})
 
+	userRoutes.POST("/login", func(c *gin.Context) {
+		controller.LoginUser(c, supbaseClient)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":8080"

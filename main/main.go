@@ -23,6 +23,8 @@ func main() {
 
 	turmaRoutes := router.Group("/turmas")
 
+	userRoutes := router.Group("/user")
+
 	turmaRoutes.POST("", func(c *gin.Context) {
 		controller.CreateTurma(c, supbaseClient)
 	})
@@ -44,6 +46,14 @@ func main() {
 
 	turmaRoutes.PUT("/:id", func(c *gin.Context) {
 		controller.UpdateTurma(c, supbaseClient)
+	})
+
+	userRoutes.POST("/register", func(c *gin.Context) {
+		controller.RegsiterUser(c, supbaseClient)
+	})
+
+	userRoutes.POST("/login", func(c *gin.Context) {
+		controller.LoginUser(c, supbaseClient)
 	})
 
 	port := os.Getenv("PORT")

@@ -48,7 +48,7 @@ func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string
 // @Tags Turmas
 // @Accept json
 // @Produce json
-// @Param turma body controller.Turma true "Dados da nova turma"
+// @Param turma body controller.Turma true "Dados da nova turm"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string

@@ -1,0 +1,203 @@
+basePath: /
+definitions:
+  controller.Turma:
+    properties:
+      dia_semana:
+        type: string
+      horario_fim:
+        type: string
+      horario_inicio:
+        type: string
+      limite_inscritos:
+        type: integer
+      local_id:
+        type: integer
+      modalidade_id:
+        type: integer
+      sigla:
+        type: string
+    type: object
+  controller.TurmaResponse:
+    properties:
+      dia_semana:
+        type: string
+      horario_fim:
+        type: string
+      horario_inicio:
+        type: string
+      limite_inscritos:
+        type: integer
+      local:
+        type: string
+      modalidade:
+        type: string
+      sigla:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Documentação da API para o projeto do núcleo de esportes da faculdade
+  title: API Núcleo de Esportes
+  version: "1.0"
+paths:
+  /turmas:
+    get:
+      description: Retorna uma lista com todas as turmas cadastradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.TurmaResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todas as turmas
+      tags:
+      - Turmas
+    post:
+      consumes:
+      - application/json
+      description: Cadastra uma nova turma no sistema, validando local e modalidade
+      parameters:
+      - description: Dados da nova turma
+        in: body
+        name: turma
+        required: true
+        schema:
+          $ref: '#/definitions/controller.Turma'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria uma nova turma
+      tags:
+      - Turmas
+  /turmas/{id}:
+    delete:
+      description: Deleta uma turma com base no ID
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta uma turma
+      tags:
+      - Turmas
+    get:
+      description: Retorna uma turma com base no ID
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.Turma'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca turma por ID
+      tags:
+      - Turmas
+    put:
+      consumes:
+      - application/json
+      description: Atualiza os dados de uma turma existente
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados da turma
+        in: body
+        name: turma
+        required: true
+        schema:
+          $ref: '#/definitions/controller.Turma'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.Turma'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza uma turma
+      tags:
+      - Turmas
+swagger: "2.0"

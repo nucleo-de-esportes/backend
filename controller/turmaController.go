@@ -43,6 +43,16 @@ func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string
 	return response
 }
 
+// @Summary Cria uma nova turma
+// @Description Cadastra uma nova turma no sistema, validando local e modalidade
+// @Tags Turmas
+// @Accept json
+// @Produce json
+// @Param turma body controller.Turma true "Dados da nova turma"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /turmas [post]
 func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	var newTurma Turma
@@ -109,7 +119,15 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 	})
 
 }
-
+// @Summary Deleta uma turma
+// @Description Deleta uma turma com base no ID
+// @Tags Turmas
+// @Produce json
+// @Param id path int true "ID da Turma"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /turmas/{id} [delete]
 func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -136,7 +154,15 @@ func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 	})
 
 }
-
+// @Summary Busca turma por ID
+// @Description Retorna uma turma com base no ID
+// @Tags Turmas
+// @Produce json
+// @Param id path int true "ID da Turma"
+// @Success 200 {object} []controller.Turma
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /turmas/{id} [get]
 func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -160,7 +186,13 @@ func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 
 	c.JSON(http.StatusOK, viewTurma)
 }
-
+// @Summary Lista todas as turmas
+// @Description Retorna uma lista com todas as turmas cadastradas
+// @Tags Turmas
+// @Produce json
+// @Success 200 {array} controller.TurmaResponse
+// @Failure 500 {object} map[string]string
+// @Router /turmas [get]
 func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 
 	var turmas []Turma
@@ -197,7 +229,17 @@ func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 
 	c.JSON(http.StatusOK, turmasResponse)
 }
-
+// @Summary Atualiza uma turma
+// @Description Atualiza os dados de uma turma existente
+// @Tags Turmas
+// @Accept json
+// @Produce json
+// @Param id path int true "ID da Turma"
+// @Param turma body controller.Turma true "Dados atualizados da turma"
+// @Success 200 {object} []controller.Turma
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /turmas/{id} [put]
 func UpdateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)

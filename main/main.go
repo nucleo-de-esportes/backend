@@ -25,6 +25,16 @@ func main() {
 
 	userRoutes := router.Group("/user")
 
+	cadRoutes := router.Group("/cad")
+
+	cadRoutes.GET("/mod", func(c *gin.Context)  {
+		controller.GetAllModalidades(c, supbaseClient)
+	})
+
+	cadRoutes.GET("local", func(c *gin.Context)  {
+		controller.GetAllLocais(c, supbaseClient)
+	})
+
 	turmaRoutes.POST("", func(c *gin.Context) {
 		controller.CreateTurma(c, supbaseClient)
 	})

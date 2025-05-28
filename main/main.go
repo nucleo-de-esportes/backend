@@ -8,8 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nucleo-de-esportes/backend/config"
 	"github.com/nucleo-de-esportes/backend/controller"
+
+	_ "github.com/nucleo-de-esportes/backend/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+
+// @title Nucleo de Esportes API
+// @version 1.0
+// @description API do sistema de gerenciamento de turmas do núcleo de esportes da faculdade.
+// @host localhost:8080
+// @BasePath /
+// @schemes http
 func main() {
 	env := flag.String("vars", "file", "Defines from where to load env vars: file or exported")
 
@@ -20,6 +31,8 @@ func main() {
 	router := gin.Default()
 
 	router.Use(cors.Default())
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	turmaRoutes := router.Group("/turmas")
 

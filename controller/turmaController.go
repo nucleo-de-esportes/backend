@@ -50,6 +50,17 @@ func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string
 	return response
 }
 
+// CreateTurma godoc
+// @Summary Cria uma nova turma
+// @Description Cria uma nova turma com dados como horário, limite de inscritos, dia da semana, local e modalidade.
+// @Tags Turmas
+// @Accept json
+// @Produce json
+// @Param turma body controller.Turma true "Dados da nova turma"
+// @Success 201 {object} map[string]interface{} "Turma criada com sucesso"
+// @Failure 400 {object} map[string]interface{} "Credenciais incorretas | Limite de 30 inscritos ultrapassado | Local não encontrado"
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar nome do local | Erro ao buscar nome da modalidade | Erro interno"
+// @Router /turma [post]
 func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	var newTurma Turma
@@ -117,6 +128,16 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 
 }
 
+// DeleteTurma godoc
+// @Summary Deleta uma turma
+// @Description Deleta uma turma pelo ID
+// @Tags Turmas
+// @Param id path int true "ID da Turma"
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Turma deletada com sucesso!"
+// @Failure 400 {object} map[string]interface{} "Turma não encontrada"
+// @Failure 500 {object} map[string]interface{} "Erro ao deletar a turma"
+// @Router /turma/{id} [delete]
 func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -144,6 +165,16 @@ func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 
 }
 
+// GetTurmaById godoc
+// @Summary Busca turma por ID
+// @Description Retorna os dados completos de uma turma com base no ID
+// @Tags Turmas
+// @Param id path int true "ID da Turma"
+// @Produce json
+// @Success 200 {object} TurmaResponse
+// @Failure 400 {object} map[string]interface{} "Turma não encontrada"
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar a turma | Erro ao tentar localizar local ou modalidade"
+// @Router /turma/{id} [get]
 func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -188,6 +219,14 @@ func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetAllTurmas godoc
+// @Summary Lista todas as turmas
+// @Description Retorna uma lista com todas as turmas cadastradas
+// @Tags Turmas
+// @Produce json
+// @Success 200 {array} TurmaResponse
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar turmas"
+// @Router /turma [get]
 func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 
 	var turmas []TurmaGet
@@ -235,6 +274,18 @@ func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 	c.JSON(http.StatusOK, turmasResponse)
 }
 
+// UpdateTurma godoc
+// @Summary Atualiza uma turma
+// @Description Atualiza os dados de uma turma existente com base no ID
+// @Tags Turmas
+// @Accept json
+// @Produce json
+// @Param id path int true "ID da Turma"
+// @Param turma body controller.Turma true "Dados atualizados da turma"
+// @Success 200 {object} []Turma "Turma atualizada"
+// @Failure 400 {object} map[string]interface{} "Credenciais incorretas | Turma não encontrada"
+// @Failure 500 {object} map[string]interface{} "Erro ao tentar atualizar turma"
+// @Router /turma/{id} [put]
 func UpdateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)

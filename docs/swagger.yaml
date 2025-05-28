@@ -1,0 +1,354 @@
+basePath: /
+definitions:
+  controller.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  controller.RegisterRequest:
+    properties:
+      email:
+        type: string
+      nome:
+        type: string
+      password:
+        type: string
+      user_type:
+        type: string
+    required:
+    - email
+    - nome
+    - password
+    - user_type
+    type: object
+  controller.Turma:
+    properties:
+      dia_semana:
+        type: string
+      horario_fim:
+        type: string
+      horario_inicio:
+        type: string
+      limite_inscritos:
+        type: integer
+      local_id:
+        type: integer
+      modalidade_id:
+        type: integer
+      sigla:
+        type: string
+    type: object
+  controller.TurmaResponse:
+    properties:
+      dia_semana:
+        type: string
+      horario_fim:
+        type: string
+      horario_inicio:
+        type: string
+      limite_inscritos:
+        type: integer
+      local:
+        type: string
+      modalidade:
+        type: string
+      sigla:
+        type: string
+      turma_id:
+        type: integer
+    type: object
+  model.Local:
+    properties:
+      campus:
+        type: string
+      local_id:
+        type: integer
+      nome:
+        type: string
+    type: object
+  model.Modalidade:
+    properties:
+      modalidade_id:
+        type: integer
+      nome:
+        type: string
+      valor:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API do sistema de gerenciamento de turmas do núcleo de esportes da
+    faculdade.
+  title: Nucleo de Esportes API
+  version: "1.0"
+paths:
+  /cad/local:
+    get:
+      description: Retorna uma lista com todos os locais cadastrados
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Local'
+            type: array
+        "500":
+          description: Erro ao buscar locais
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Lista todos os locais
+      tags:
+      - Cadastro
+  /cad/mod:
+    get:
+      description: Retorna uma lista com todas as modalidades cadastradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Modalidade'
+            type: array
+        "500":
+          description: Erro ao buscar modalidades
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Lista todas as modalidades
+      tags:
+      - Cadastro
+  /turma:
+    get:
+      description: Retorna uma lista com todas as turmas cadastradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.TurmaResponse'
+            type: array
+        "500":
+          description: Erro ao buscar turmas
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Lista todas as turmas
+      tags:
+      - Turmas
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova turma com dados como horário, limite de inscritos,
+        dia da semana, local e modalidade.
+      parameters:
+      - description: Dados da nova turma
+        in: body
+        name: turma
+        required: true
+        schema:
+          $ref: '#/definitions/controller.Turma'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Turma criada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Credenciais incorretas | Limite de 30 inscritos ultrapassado
+            | Local não encontrado
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao buscar nome do local | Erro ao buscar nome da modalidade
+            | Erro interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Cria uma nova turma
+      tags:
+      - Turmas
+  /turma/{id}:
+    delete:
+      description: Deleta uma turma pelo ID
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turma deletada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Turma não encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao deletar a turma
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Deleta uma turma
+      tags:
+      - Turmas
+    get:
+      description: Retorna os dados completos de uma turma com base no ID
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.TurmaResponse'
+        "400":
+          description: Turma não encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao buscar a turma | Erro ao tentar localizar local ou
+            modalidade
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Busca turma por ID
+      tags:
+      - Turmas
+    put:
+      consumes:
+      - application/json
+      description: Atualiza os dados de uma turma existente com base no ID
+      parameters:
+      - description: ID da Turma
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados atualizados da turma
+        in: body
+        name: turma
+        required: true
+        schema:
+          $ref: '#/definitions/controller.Turma'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Turma atualizada
+          schema:
+            items:
+              $ref: '#/definitions/controller.Turma'
+            type: array
+        "400":
+          description: Credenciais incorretas | Turma não encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao tentar atualizar turma
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Atualiza uma turma
+      tags:
+      - Turmas
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica um usuário existente e retorna token JWT e dados do usuário
+      parameters:
+      - description: Credenciais de login
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login realizado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: email ou senha incorretos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Falha ao tentar autenticar usuário
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao tentar buscar informações do usuário
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Realiza login do usuário
+      tags:
+      - Usuário
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo usuário com email, senha, tipo e nome
+      parameters:
+      - description: Dados do novo usuário
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controller.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuario cadastrado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Credenciais incorretas ou tipo de usuário inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro ao tentar cadastrar usuario
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Registra um novo usuário
+      tags:
+      - Usuário
+schemes:
+- http
+swagger: "2.0"

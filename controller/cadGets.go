@@ -37,7 +37,7 @@ func GetAllLocais(c *gin.Context, supabase *supabase.Client) {
 // @Tags Cadastro
 // @Produce json
 // @Success 200 {array} model.Modalidade
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar modalidades"
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar modalidades "
 // @Router /cad/mod [get]
 func GetAllModalidades(c *gin.Context, supabase *supabase.Client) {
 	var modalidades []model.Modalidade

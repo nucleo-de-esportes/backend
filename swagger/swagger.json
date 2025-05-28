@@ -60,7 +60,7 @@
                         }
                     },
                     "500": {
-                        "description": "Erro ao buscar modalidades",
+                        "description": "Erro ao buscar modalidades ",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

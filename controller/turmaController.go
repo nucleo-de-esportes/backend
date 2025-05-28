@@ -21,6 +21,7 @@ type Turma struct {
 }
 
 type TurmaResponse struct {
+	Turma_id        int64  `json:"turma_id"`
 	Horario_Inicio  string `json:"horario_inicio"`
 	Horario_Fim     string `json:"horario_fim"`
 	LimiteInscritos int64  `json:"limite_inscritos"`
@@ -28,6 +29,11 @@ type TurmaResponse struct {
 	Sigla           string `json:"sigla"`
 	Local_nome      string `json:"local"`
 	Modalidade_nome string `json:"modalidade"`
+}
+
+type TurmaGet struct {
+	Turma
+	Turma_id int64 `json:"turma_id"`
 }
 
 type NomeResponse struct {
@@ -40,6 +46,7 @@ func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string
 	copier.Copy(&response, &turma)
 	response.Local_nome = localNome
 	response.Modalidade_nome = modalidadeNome
+
 	return response
 }
 
@@ -158,12 +165,32 @@ func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
 		return
 	}
 
-	c.JSON(http.StatusOK, viewTurma)
+	localIdString := strconv.FormatInt(viewTurma[0].Local_Id, 10)
+	modalidadeIdString := strconv.FormatInt(viewTurma[0].Modalidade_Id, 10)
+
+	var localName []NomeResponse
+	var modalidadeName []NomeResponse
+
+	errLoc := supabase.DB.From("local").Select("nome").Eq("local_id", localIdString).Execute(&localName)
+	errMod := supabase.DB.From("modalidade").Select("nome").Eq("modalidade_id", modalidadeIdString).Execute(&modalidadeName)
+
+	if errLoc != nil || len(localName) == 0 || errMod != nil || len(modalidadeName) == 00 {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao tentar localizar local ou modalidade"})
+		return
+	}
+
+	var response TurmaResponse
+	copier.Copy(&response, &viewTurma[0])
+	response.Local_nome = localName[0].Nome
+	response.Modalidade_nome = modalidadeName[0].Nome
+	response.Turma_id = turmaId
+
+	c.JSON(http.StatusOK, response)
 }
 
 func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 
-	var turmas []Turma
+	var turmas []TurmaGet
 	err := supabase.DB.From("turma").Select("*").Execute(&turmas)
 
 	if err != nil {
@@ -191,8 +218,18 @@ func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 			continue
 		}
 
-		convertResponse := ConvertToTurmaResponse(turma, localName[0].Nome, modalidadeName[0].Nome)
+		convertResponse := TurmaResponse{
+			Turma_id:        turma.Turma_id,
+			Horario_Inicio:  turma.Horario_Inicio,
+			Horario_Fim:     turma.Horario_Fim,
+			LimiteInscritos: turma.LimiteInscritos,
+			Dia_Semana:      turma.Dia_Semana,
+			Sigla:           turma.Sigla,
+			Local_nome:      localName[0].Nome,
+			Modalidade_nome: modalidadeName[0].Nome,
+		}
 		turmasResponse = append(turmasResponse, convertResponse)
+
 	}
 
 	c.JSON(http.StatusOK, turmasResponse)

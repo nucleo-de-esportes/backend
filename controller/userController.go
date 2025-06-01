@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ import (
 type RegisterRequest struct {
 	Email     string `json:"email" binding:"required"`
 	Password  string `json:"password" binding:"required"`
-	User_type string `json:"user_type" binding:"required"`
+	User_type string
 	Nome      string `json:"nome" binding:"required"`
 }
 
@@ -40,6 +41,11 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 
 	}
 
+	if strings.HasSuffix(data.Email, "@sempreceub.com") {
+		data.User_type = "aluno"
+	} else if strings.HasSuffix(data.Email, "@ceub.com") {
+		data.User_type = "professor"
+	}
 	var user_type model.UserType
 
 	user_type, err := model.ConvertToType(data.User_type)

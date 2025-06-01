@@ -16,7 +16,7 @@ func ValidateEmail(email string) error {
 		return errors.New("formato de email inválido")
 	}
 
-	if !strings.Contains(email, "@sempreceub") {
+	if !strings.Contains(email, "@sempreceub") && !strings.Contains(email, "@ceub") {
 		return errors.New("email institucional deve ser utilizado")
 	}
 

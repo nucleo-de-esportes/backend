@@ -26,6 +26,17 @@ type RegisterResponse struct {
 	Nome      string    `json:"nome"`
 }
 
+// RegsiterUser godoc
+// @Summary Registra um novo usuário
+// @Description Cria um novo usuário com email, senha, tipo e nome
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param user body RegisterRequest true "Dados do novo usuário"
+// @Success 201 {object} map[string]interface{} "Usuario cadastrado com sucesso"
+// @Failure 400 {object} map[string]interface{} "Credenciais incorretas ou tipo de usuário inválido"
+// @Failure 500 {object} map[string]interface{} "Erro ao tentar cadastrar usuario"
+// @Router /user/register [post]
 func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 
 	var data RegisterRequest
@@ -113,6 +124,18 @@ type LoginResponse struct {
 	Token     string    `json:"token"`
 }
 
+// LoginUser godoc
+// @Summary Realiza login do usuário
+// @Description Autentica um usuário existente e retorna token JWT e dados do usuário
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param credentials body LoginRequest true "Credenciais de login"
+// @Success 200 {object} map[string]interface{} "Login realizado com sucesso!"
+// @Failure 400 {object} map[string]interface{} "email ou senha incorretos"
+// @Failure 401 {object} map[string]interface{} "Falha ao tentar autenticar usuário"
+// @Failure 500 {object} map[string]interface{} "Erro ao tentar buscar informações do usuário"
+// @Router /user/login [post]
 func LoginUser(c *gin.Context, supabase *supa.Client) {
 
 	var data LoginRequest

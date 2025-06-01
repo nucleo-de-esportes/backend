@@ -1,0 +1,43 @@
+name: Build & Deploy Swagger UI
+
+on:
+  push:
+    branches:
+      - main
+      - doc
+      
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22 
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger docs
+        run: swag init -g main/main.go
+
+      - name: Copy Swagger UI
+        run: |
+          mkdir -p public/swagger
+          cp -r docs/swagger.json public/swagger/
+          curl -L https://github.com/swagger-api/swagger-ui/archive/refs/heads/master.zip -o swagger-ui.zip
+          unzip -q swagger-ui.zip
+          cp -r swagger-ui-master/dist/* public/swagger/
+          rm -rf swagger-ui.zip swagger-ui-master
+          echo "<script>window.onload=function(){window.ui=SwaggerUIBundle({url:'swagger.json',dom_id:'#swagger-ui'})}</script>" >> public/swagger/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public

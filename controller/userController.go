@@ -69,6 +69,10 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 	user, err := supabase.Auth.SignUp(c, supa.UserCredentials{
 		Email:    data.Email,
 		Password: data.Password,
+		Data: map[string]interface{}{
+			"user_type": data.User_type,
+			"nome":      data.Nome,
+		},
 	})
 
 	if err != nil {
@@ -117,11 +121,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	User_id   uuid.UUID `json:"user_id"`
-	Email     string    `json:"email"`
-	User_type string    `json:"user_type"`
-	Nome      string    `json:"nome"`
-	Token     string    `json:"token"`
+	User_id uuid.UUID `json:"user_id"`
+	Email   string    `json:"email"`
+	Nome    string    `json:"nome"`
+	Token   string    `json:"token"`
 }
 
 // LoginUser godoc
@@ -170,11 +173,10 @@ func LoginUser(c *gin.Context, supabase *supa.Client) {
 	}
 
 	response := LoginResponse{
-		User_id:   uuid.MustParse(login.User.ID),
-		Email:     userData[0].Email,
-		User_type: userData[0].User_type.ConvertToString(),
-		Nome:      userData[0].Nome,
-		Token:     login.AccessToken,
+		User_id: uuid.MustParse(login.User.ID),
+		Email:   userData[0].Email,
+		Nome:    userData[0].Nome,
+		Token:   login.AccessToken,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -2,11 +2,14 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/nedpals/supabase-go"
 	supa "github.com/nedpals/supabase-go"
 	"github.com/nucleo-de-esportes/backend/model"
 	"github.com/nucleo-de-esportes/backend/services"
@@ -183,5 +186,53 @@ func LoginUser(c *gin.Context, supabase *supa.Client) {
 		"message": "Login realizado com sucesso!",
 		"usuario": response,
 	})
+}
 
+type InscricaoRequest struct {
+	TurmaID int64 `json:"turma_id"`
+}
+
+func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
+
+	userID := c.GetString("user_id")
+
+	var turmaId InscricaoRequest
+	if err := c.ShouldBindJSON(&turmaId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	turmaIdString := strconv.FormatInt(turmaId.TurmaID, 10)
+
+	var turma []map[string]interface{}
+	err := supabase.DB.From("turma").Select("*").Eq("turma_id", turmaIdString).Execute(&turma)
+	if err != nil || len(turma) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	var inscricoes []map[string]interface{}
+	err = supabase.DB.From("inscricao").Select("*").
+		Eq("user_id", userID).Eq("turma_id", turmaIdString).
+		Execute(&inscricoes)
+
+	if err == nil && len(inscricoes) > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Você já está inscrito nesta turma"})
+		return
+	}
+
+	data := map[string]interface{}{
+		"user_id":        userID,
+		"turma_id":       turmaId.TurmaID,
+		"data_inscricao": time.Now(),
+	}
+
+	var result map[string]interface{}
+	err = supabase.DB.From("inscricao").Insert(data).Execute(&result)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao realizar inscrição"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
 }

@@ -79,6 +79,10 @@ func main() {
 		controller.LoginUser(c, supbaseClient)
 	})
 
+	userRoutes.POST("/inscricao", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
+		controller.InscreverAluno(c, supbaseClient)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":8080"

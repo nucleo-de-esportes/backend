@@ -287,6 +287,60 @@
                 }
             }
         },
+        "/user/inscricao": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Inscreve o usuário autenticado em uma turma específica",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuário"
+                ],
+                "summary": "Realiza a inscrição de um aluno em uma turma",
+                "parameters": [
+                    {
+                        "description": "ID da Turma",
+                        "name": "inscricao",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.InscricaoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Inscrição realizada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Token ausente ou inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Turma não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/user/login": {
             "post": {
                 "description": "Autentica um usuário existente e retorna token JWT e dados do usuário",
@@ -394,6 +448,14 @@
         }
     },
     "definitions": {
+        "controller.InscricaoRequest": {
+            "type": "object",
+            "properties": {
+                "turma_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "controller.LoginRequest": {
             "type": "object",
             "required": [
@@ -513,6 +575,14 @@
                     "type": "number"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and a JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

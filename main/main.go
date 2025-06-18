@@ -21,6 +21,10 @@ import (
 // @host localhost:8080
 // @BasePath /
 // @schemes http
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and a JWT token.
 func main() {
 	env := flag.String("vars", "file", "Defines from where to load env vars: file or exported")
 

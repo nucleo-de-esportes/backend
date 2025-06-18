@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -100,8 +101,8 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 		Nome:      data.Nome,
 	}
 
-	var result []model.User
-	insertUser := supabase.DB.From("usuario").Insert(newUser).Execute(&result)
+	//var result []model.User
+	insertUser := supabase.DB.From("usuario").Insert(newUser).Execute(nil)
 
 	if insertUser != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -192,6 +193,18 @@ type InscricaoRequest struct {
 	TurmaID int64 `json:"turma_id"`
 }
 
+// InscreverAluno godoc
+// @Summary Realiza a inscrição de um aluno em uma turma
+// @Description Inscreve o usuário autenticado em uma turma específica
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param   inscricao    body     InscricaoRequest true "ID da Turma"
+// @Success 201 {object} map[string]interface{} "Inscrição realizada com sucesso!"
+// @Failure 401 {object} map[string]interface{} "Token ausente ou inválido"
+// @Failure 404 {object} map[string]interface{} "Turma não encontrada"
+// @Security BearerAuth
+// @Router /user/inscricao [post]
 func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
 
 	userID := c.GetString("user_id")
@@ -224,12 +237,15 @@ func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
 	data := map[string]interface{}{
 		"user_id":        userID,
 		"turma_id":       turmaId.TurmaID,
-		"data_inscricao": time.Now(),
+		"created_at": time.Now(),
 	}
 
-	var result map[string]interface{}
-	err = supabase.DB.From("inscricao").Insert(data).Execute(&result)
+	//var result map[string]interface{}
+	err = supabase.DB.From("inscricao").Insert(data).Execute(nil)
 	if err != nil {
+    // Adicione esta linha para ver o erro detalhado no terminal onde o servidor está rodando
+    	log.Printf("ERRO NO BANCO DE DADOS AO INSCREVER: %v", err)
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao realizar inscrição"})
 		return
 	}

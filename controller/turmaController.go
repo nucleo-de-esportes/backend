@@ -65,6 +65,17 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 
 	var newTurma Turma
 
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+		return
+	}
+
 	if err := c.ShouldBindJSON(&newTurma); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
 		return
@@ -140,6 +151,17 @@ func CreateTurma(c *gin.Context, supabase *supabase.Client) {
 // @Router /turma/{id} [delete]
 func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+		return
+	}
+
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
@@ -176,6 +198,17 @@ func DeleteTurma(c *gin.Context, supabase *supabase.Client) {
 // @Failure 500 {object} map[string]interface{} "Erro ao buscar a turma | Erro ao tentar localizar local ou modalidade"
 // @Router /turma/{id} [get]
 func GetTurmaById(c *gin.Context, supabase *supabase.Client) {
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+		return
+	}
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -287,6 +320,17 @@ func GetAllTurmas(c *gin.Context, supabase *supabase.Client) {
 // @Failure 500 {object} map[string]interface{} "Erro ao tentar atualizar turma"
 // @Router /turma/{id} [put]
 func UpdateTurma(c *gin.Context, supabase *supabase.Client) {
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+		return
+	}
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {

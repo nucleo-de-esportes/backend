@@ -2,11 +2,15 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/nedpals/supabase-go"
 	supa "github.com/nedpals/supabase-go"
 	"github.com/nucleo-de-esportes/backend/model"
 	"github.com/nucleo-de-esportes/backend/services"
@@ -97,8 +101,8 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 		Nome:      data.Nome,
 	}
 
-	var result []model.User
-	insertUser := supabase.DB.From("usuario").Insert(newUser).Execute(&result)
+	//var result []model.User
+	insertUser := supabase.DB.From("usuario").Insert(newUser).Execute(nil)
 
 	if insertUser != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -183,5 +187,68 @@ func LoginUser(c *gin.Context, supabase *supa.Client) {
 		"message": "Login realizado com sucesso!",
 		"usuario": response,
 	})
+}
 
+type InscricaoRequest struct {
+	TurmaID int64 `json:"turma_id"`
+}
+
+// InscreverAluno godoc
+// @Summary Realiza a inscrição de um aluno em uma turma
+// @Description Inscreve o usuário autenticado em uma turma específica
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param   inscricao    body     InscricaoRequest true "ID da Turma"
+// @Success 201 {object} map[string]interface{} "Inscrição realizada com sucesso!"
+// @Failure 401 {object} map[string]interface{} "Token ausente ou inválido"
+// @Failure 404 {object} map[string]interface{} "Turma não encontrada"
+// @Security BearerAuth
+// @Router /user/inscricao [post]
+func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
+
+	userID := c.GetString("user_id")
+
+	var turmaId InscricaoRequest
+	if err := c.ShouldBindJSON(&turmaId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	turmaIdString := strconv.FormatInt(turmaId.TurmaID, 10)
+
+	var turma []map[string]interface{}
+	err := supabase.DB.From("turma").Select("*").Eq("turma_id", turmaIdString).Execute(&turma)
+	if err != nil || len(turma) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	var inscricoes []map[string]interface{}
+	err = supabase.DB.From("inscricao").Select("*").
+		Eq("user_id", userID).Eq("turma_id", turmaIdString).
+		Execute(&inscricoes)
+
+	if err == nil && len(inscricoes) > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Você já está inscrito nesta turma"})
+		return
+	}
+
+	data := map[string]interface{}{
+		"user_id":        userID,
+		"turma_id":       turmaId.TurmaID,
+		"created_at": time.Now(),
+	}
+
+	//var result map[string]interface{}
+	err = supabase.DB.From("inscricao").Insert(data).Execute(nil)
+	if err != nil {
+    // Adicione esta linha para ver o erro detalhado no terminal onde o servidor está rodando
+    	log.Printf("ERRO NO BANCO DE DADOS AO INSCREVER: %v", err)
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao realizar inscrição"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
 }

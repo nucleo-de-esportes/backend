@@ -8,12 +8,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nucleo-de-esportes/backend/config"
 	"github.com/nucleo-de-esportes/backend/controller"
+	"github.com/nucleo-de-esportes/backend/main/middleware"
 
 	_ "github.com/nucleo-de-esportes/backend/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
 
 // @title Nucleo de Esportes API
 // @version 1.0
@@ -21,6 +21,10 @@ import (
 // @host localhost:8080
 // @BasePath /
 // @schemes http
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and a JWT token.
 func main() {
 	env := flag.String("vars", "file", "Defines from where to load env vars: file or exported")
 
@@ -40,24 +44,24 @@ func main() {
 
 	cadRoutes := router.Group("/cad")
 
-	cadRoutes.GET("/mod", func(c *gin.Context)  {
+	cadRoutes.GET("/mod", func(c *gin.Context) {
 		controller.GetAllModalidades(c, supbaseClient)
 	})
 
-	cadRoutes.GET("local", func(c *gin.Context)  {
+	cadRoutes.GET("local", func(c *gin.Context) {
 		controller.GetAllLocais(c, supbaseClient)
 	})
 
-	turmaRoutes.POST("", func(c *gin.Context) {
+	turmaRoutes.POST("", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
 		controller.CreateTurma(c, supbaseClient)
 	})
 
-	turmaRoutes.DELETE("/:id", func(c *gin.Context) {
+	turmaRoutes.DELETE("/:id", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
 		controller.DeleteTurma(c, supbaseClient)
 
 	})
 
-	turmaRoutes.GET("/:id", func(c *gin.Context) {
+	turmaRoutes.GET("/:id", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
 		controller.GetTurmaById(c, supbaseClient)
 
 	})
@@ -67,7 +71,7 @@ func main() {
 
 	})
 
-	turmaRoutes.PUT("/:id", func(c *gin.Context) {
+	turmaRoutes.PUT("/:id", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
 		controller.UpdateTurma(c, supbaseClient)
 	})
 
@@ -77,6 +81,10 @@ func main() {
 
 	userRoutes.POST("/login", func(c *gin.Context) {
 		controller.LoginUser(c, supbaseClient)
+	})
+
+	userRoutes.POST("/inscricao", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
+		controller.InscreverAluno(c, supbaseClient)
 	})
 
 	port := os.Getenv("PORT")

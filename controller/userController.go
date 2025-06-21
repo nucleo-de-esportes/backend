@@ -58,7 +58,7 @@ func RegsiterUser(c *gin.Context, supabase *supa.Client) {
 
 	if strings.HasSuffix(data.Email, "@sempreceub.com") {
 		data.User_type = "aluno"
-	} else if strings.HasSuffix(data.Email, "@ceub.com") {
+	} else if strings.HasSuffix(data.Email, "@ceub.edu.br") {
 		data.User_type = "professor"
 	}
 	var user_type model.UserType

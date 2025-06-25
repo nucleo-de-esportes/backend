@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -235,20 +235,53 @@ func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
 	}
 
 	data := map[string]interface{}{
-		"user_id":        userID,
-		"turma_id":       turmaId.TurmaID,
+		"user_id":    userID,
+		"turma_id":   turmaId.TurmaID,
 		"created_at": time.Now(),
 	}
 
 	//var result map[string]interface{}
 	err = supabase.DB.From("inscricao").Insert(data).Execute(nil)
 	if err != nil {
-    // Adicione esta linha para ver o erro detalhado no terminal onde o servidor está rodando
-    	log.Printf("ERRO NO BANCO DE DADOS AO INSCREVER: %v", err)
+		// Adicione esta linha para ver o erro detalhado no terminal onde o servidor está rodando
+		log.Printf("ERRO NO BANCO DE DADOS AO INSCREVER: %v", err)
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao realizar inscrição"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
+}
+
+type InscricaoComTurma struct {
+	Turma Turma `json:"turma"`
+}
+
+func GetTurmasByUser(c *gin.Context, supabase *supabase.Client) {
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		return
+	}
+
+	userIdString := userId.(string)
+
+	var resultados []InscricaoComTurma
+	err := supabase.DB.From("inscricao").
+		Select("turma(*,local(nome),modalidade(nome))").
+		Eq("user_id", userIdString).
+		Execute(&resultados)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar turmas", "detalhe": err.Error()})
+		return
+	}
+
+	turmas := make([]Turma, len(resultados))
+	for i, resultado := range resultados {
+		turmas[i] = resultado.Turma
+	}
+
+	c.JSON(http.StatusOK, gin.H{"turmas": turmas})
 }

@@ -254,7 +254,18 @@ func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
 }
 
 type InscricaoComTurma struct {
-	Turma Turma `json:"turma"`
+	Turma TurmaResponseUser `json:"turma"`
+}
+
+type TurmaResponseUser struct {
+	Turma_id        int64        `json:"turma_id"`
+	Horario_Inicio  string       `json:"horario_inicio"`
+	Horario_Fim     string       `json:"horario_fim"`
+	LimiteInscritos int64        `json:"limite_inscritos"`
+	Dia_Semana      string       `json:"dia_semana"`
+	Sigla           string       `json:"sigla"`
+	Local           NomeResponse `json:"local"`
+	Modalidade      NomeResponse `json:"modalidade"`
 }
 
 func GetTurmasByUser(c *gin.Context, supabase *supabase.Client) {
@@ -278,7 +289,7 @@ func GetTurmasByUser(c *gin.Context, supabase *supabase.Client) {
 		return
 	}
 
-	turmas := make([]Turma, len(resultados))
+	turmas := make([]TurmaResponseUser, len(resultados))
 	for i, resultado := range resultados {
 		turmas[i] = resultado.Turma
 	}

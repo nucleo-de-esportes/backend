@@ -36,12 +36,12 @@ func main() {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-    		AllowOrigins:     []string{"*"}, 
-    		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-    		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-    		ExposeHeaders:    []string{"Content-Length"},
-    		AllowCredentials: true,
-    		MaxAge:           12 * time.Hour,
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -93,6 +93,10 @@ func main() {
 
 	userRoutes.POST("/inscricao", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
 		controller.InscreverAluno(c, supbaseClient)
+	})
+
+	userRoutes.GET("/turmas", middleware.AuthUser(supbaseClient), func(c *gin.Context) {
+		controller.GetTurmasByUser(c, supbaseClient)
 	})
 
 	port := os.Getenv("PORT")

@@ -253,42 +253,35 @@ func InscreverAluno(c *gin.Context, supabase *supabase.Client) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
 }
 
+type InscricaoComTurma struct {
+	Turma Turma `json:"turma"`
+}
+
 func GetTurmasByUser(c *gin.Context, supabase *supabase.Client) {
 
 	userId, exists := c.Get("user_id")
-
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		return
 	}
 
 	userIdString := userId.(string)
 
-	var inscricoes []InscricaoRequest
-	err := supabase.DB.From("inscricao").Select("turma_id").Eq("user_id", userIdString).Execute(&inscricoes)
+	var resultados []InscricaoComTurma
+	err := supabase.DB.From("inscricao").
+		Select("turma(*,local(nome),modalidade(nome))").
+		Eq("user_id", userIdString).
+		Execute(&resultados)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar inscrições", "detalhe": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar turmas", "detalhe": err.Error()})
 		return
 	}
 
-	if len(inscricoes) == 0 {
-		c.JSON(http.StatusOK, gin.H{"turmas": []interface{}{}})
-		return
+	turmas := make([]Turma, len(resultados))
+	for i, resultado := range resultados {
+		turmas[i] = resultado.Turma
 	}
 
-	var turmasInscritas []map[string]interface{}
-
-	for _, inscricao := range inscricoes {
-		var turma []map[string]interface{}
-		turmaIdString := strconv.FormatInt(inscricao.TurmaID, 10)
-		err := supabase.DB.From("turma").
-			Select("*, local(nome), modalidade(nome)").
-			Eq("turma_id", turmaIdString).
-			Execute(&turma)
-
-		if err == nil && len(turma) > 0 {
-			turmasInscritas = append(turmasInscritas, turma[0])
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{"turmas": turmasInscritas})
+	c.JSON(http.StatusOK, gin.H{"turmas": turmas})
 }

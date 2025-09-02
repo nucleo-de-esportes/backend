@@ -63,7 +63,9 @@ func main() {
 	// Rotas de usuário - temporariamente comentadas para testes
 	userRoutes := router.Group("/user")
 	userRoutes.POST("/register", handlers.RegisterUser)
-	// userRoutes.POST("/login", handlers.LoginUser)
+	userRoutes.GET("", handlers.GetUsers)
+	userRoutes.GET("/:id", handlers.GetUserById)
+	userRoutes.POST("/login", handlers.LoginUser)
 	// userRoutes.POST("/inscricao", handlers.InscreverAluno)
 	// userRoutes.GET("/turmas", handlers.GetTurmasByUser)
 

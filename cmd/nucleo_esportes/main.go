@@ -65,8 +65,8 @@ func main() {
 	userRoutes.GET("", handlers.GetUsers)
 	userRoutes.GET("/:id", handlers.GetUserById)
 	userRoutes.POST("/login", handlers.LoginUser)
-	//userRoutes.POST("/inscricao", handlers.InscreverAluno)
-	//userRoutes.GET("/turmas", handlers.GetTurmasByUser)
+	userRoutes.POST("/inscricao", middleware.AuthUser, handlers.InscreverAluno)
+	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
 
 	port := os.Getenv("PORT")
 	if port == "" {

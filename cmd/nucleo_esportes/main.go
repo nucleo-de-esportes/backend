@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/nucleo-de-esportes/backend/internal/handlers"
-	"github.com/nucleo-de-esportes/backend/internal/repository"
-
 	_ "github.com/nucleo-de-esportes/backend/docs"
+	"github.com/nucleo-de-esportes/backend/internal/handlers"
+	"github.com/nucleo-de-esportes/backend/internal/middleware"
+	"github.com/nucleo-de-esportes/backend/internal/repository"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -42,15 +42,14 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	turmaRoutes := router.Group("/turmas")
-
 	cadRoutes := router.Group("/cad")
 
 	cadRoutes.GET("/mod", handlers.GetAllModalidades)
 
 	cadRoutes.GET("local", handlers.GetAllLocais)
 
-	// Rotas de turma, sem middleware nem auth
-	turmaRoutes.POST("", handlers.CreateTurma)
+	// // Rotas de turma, sem middleware nem auth
+	turmaRoutes.POST("", middleware.AuthUser, handlers.CreateTurma)
 
 	turmaRoutes.DELETE("/:id", handlers.DeleteTurma)
 
@@ -66,8 +65,8 @@ func main() {
 	userRoutes.GET("", handlers.GetUsers)
 	userRoutes.GET("/:id", handlers.GetUserById)
 	userRoutes.POST("/login", handlers.LoginUser)
-	// userRoutes.POST("/inscricao", handlers.InscreverAluno)
-	// userRoutes.GET("/turmas", handlers.GetTurmasByUser)
+	//userRoutes.POST("/inscricao", handlers.InscreverAluno)
+	//userRoutes.GET("/turmas", handlers.GetTurmasByUser)
 
 	port := os.Getenv("PORT")
 	if port == "" {

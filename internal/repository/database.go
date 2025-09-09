@@ -40,6 +40,8 @@ func Init() {
 		&model.Modalidade{},
 		&model.Turma{},
 		&model.Matricula{},
+		&model.Aula{},
+		&model.Presenca{},
 	)
 	if err != nil {
 		log.Printf("Erro na migração das tabelas: %v", err)

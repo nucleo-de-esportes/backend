@@ -53,3 +53,26 @@ ADD CONSTRAINT fk_professor FOREIGN KEY (professor_id) REFERENCES usuario(user_i
 
 ALTER TABLE usuario
 ADD COLUMN password TEXT NOT NULL;
+
+
+CREATE TABLE aula (
+    id SERIAL PRIMARY KEY,
+    turma_id BIGINT NOT NULL,
+    data_hora TIMESTAMP NOT NULL,
+    criado_em TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_aula_turma FOREIGN KEY (turma_id) REFERENCES turma(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE presenca (
+    id SERIAL PRIMARY KEY,
+    aula_id BIGINT NOT NULL,
+    user_id UUID NOT NULL,
+    presente BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_presenca_aula FOREIGN KEY (aula_id) REFERENCES aula(id) ON DELETE CASCADE,
+    CONSTRAINT fk_presenca_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT uq_presenca UNIQUE (aula_id, user_id)  -- 1 aluno só tenha 1 registro por aula
+);

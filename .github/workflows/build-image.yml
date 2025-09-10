@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: nucleo-de-esportes/api
+  IMAGE_NAME: ${{ env.REGISTRY }}/api
 
 jobs:
   build-and-push:

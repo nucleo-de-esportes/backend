@@ -2,7 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main, ci/SCRUM-26-pipeline-de-build-imagem-docker ]
+    branches: [ main ]
     tags: [ 'v*' ]
 
 env:

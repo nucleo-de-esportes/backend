@@ -1,0 +1,19 @@
+
+services:
+  postgres:
+    image: postgres:15
+    env_file:
+      - dbVariables.env
+    container_name: nucleo_esportes_ceub
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: nucleo_esportes_ceub
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

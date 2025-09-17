@@ -318,3 +318,36 @@ func UpdateTurma(c *gin.Context) {
 
 	c.JSON(http.StatusOK, updatedTurma)
 }
+
+func GetNextClassById(c *gin.Context){
+
+	turmaId, err := strv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Id da turma não encontrado",
+			"details": err.Error(),
+
+		})
+		return
+	}
+
+	var aula model.Aula
+
+	if err := repository.DB.Where("turma_id = ? AND data_hora > NOW()",turmaId).Order("data_hora ASC").First(&aula).Error; if err == "record not found"{
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Nenhuma aula encontrada"
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao tentar encontrar proxima aula"
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, aula)
+
+}

@@ -57,6 +57,8 @@ func main() {
 
 	turmaRoutes.GET("", handlers.GetAllTurmas)
 
+	turmaRoutes.GET("/nextclass/:id", handlers.GetNextClassById)
+
 	turmaRoutes.PUT("/:id", handlers.UpdateTurma)
 
 	// Rotas de usuário - temporariamente comentadas para testes

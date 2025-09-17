@@ -8,6 +8,9 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
+	"time"
+	"strings"
+	
 )
 
 type Turma struct {
@@ -352,5 +355,84 @@ func GetNextClassById(c *gin.Context){
 	}
 
 	c.JSON(200, aula)
+
+}
+
+func CreateAula(c *gin.Context){
+
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Id da turma não encontrado",
+			"details": err.Error(),
+
+		})
+		return
+	}
+
+	
+
+	var aulaRequest struct{
+		Data string `json:"data" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&aulaRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	var turma model.Turma
+
+	if err := repository.DB.First(&turma, turmaId).Error; err != nil{
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Turma não encontrada",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	data, err := time.Parse("2006-Jan-02", aulaRequest.Data)
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	diasEmPortugues := map[time.Weekday]string{
+		time.Sunday:    "Domingo",
+		time.Monday:    "Segunda-feira",
+		time.Tuesday:   "Terça-feira",
+		time.Wednesday: "Quarta-feira",
+		time.Thursday:  "Quinta-feira",
+		time.Friday:    "Sexta-feira",
+		time.Saturday:  "Sábado",
+	}
+
+	diaSemanaPortugues := diasEmPortugues[data.Weekday()]
+	if !strings.EqualFold(diaSemanaPortugues,turma.Dia_Semana){
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":"Data não corresponde a dia da turma",
+		})
+		return
+	}
+
+	 aula := model.Aula{
+		TurmaID: turmaId,
+		DataHora: data,
+		CriadoEm: time.Now(),
+	}
+
+	if err := repository.DB.Create(&aula).Error; err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao tentar criar nova aula",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(201, aula)
 
 }

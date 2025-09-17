@@ -6,7 +6,7 @@ import (
 
 type Aula struct {
 	ID       uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	TurmaID  uint      `gorm:"not null" json:"turma_id"`
+	TurmaID  int64     `gorm:"not null" json:"turma_id"`
 	DataHora time.Time `gorm:"not null" json:"data_hora"`
 	CriadoEm time.Time `gorm:"autoCreateTime" json:"criado_em"`
 

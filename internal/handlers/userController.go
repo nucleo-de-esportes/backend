@@ -1,0 +1,379 @@
+package handlers
+
+import (
+	"errors"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+
+	"github.com/nucleo-de-esportes/backend/internal/model"
+	"github.com/nucleo-de-esportes/backend/internal/repository"
+	"github.com/nucleo-de-esportes/backend/internal/services"
+)
+
+type RegisterRequest struct {
+	Email     string         `json:"email" binding:"required"`
+	Password  string         `json:"password" binding:"required"`
+	User_type model.UserType `json:"user_type"`
+	Nome      string         `json:"nome" binding:"required"`
+}
+
+type RegisterResponse struct {
+	Email     string         `json:"email"`
+	User_id   uuid.UUID      `json:"user_id"`
+	User_type model.UserType `json:"user_type"`
+	Nome      string         `json:"nome"`
+}
+
+// RegsiterUser godoc
+// @Summary Registra um novo usuário
+// @Description Cria um novo usuário com email, senha, tipo e nome
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param user body RegisterRequest true "Dados do novo usuário"
+// @Success 201 {object} map[string]interface{} "Usuario cadastrado com sucesso"
+// @Failure 400 {object} map[string]interface{} "Credenciais incorretas ou tipo de usuário inválido"
+// @Failure 500 {object} map[string]interface{} "Erro ao tentar cadastrar usuario"
+// @Router /user/register [post]
+func RegisterUser(c *gin.Context) {
+
+	var data RegisterRequest
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
+		return
+	}
+
+	if validateEmail := services.ValidateEmail(data.Email); validateEmail != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validateEmail.Error()})
+		return
+
+	}
+
+	if strings.HasSuffix(data.Email, "@sempreceub.com") {
+		data.User_type = model.Aluno
+	} else if strings.HasSuffix(data.Email, "@ceub.edu.br") {
+		data.User_type = model.Professor
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao processar senha",
+		})
+		return
+	}
+
+	newUser := model.User{
+		User_id:   uuid.New(),
+		User_type: data.User_type,
+		Email:     data.Email,
+		Nome:      data.Nome,
+		Password:  string(hashedPassword),
+	}
+
+	insertUser := services.CreateUser(newUser)
+
+	if insertUser != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao inserir usuario na tabela",
+			"details": insertUser.Error(),
+		})
+		return
+	}
+
+	userResponse := RegisterResponse{
+		User_id:   newUser.User_id,
+		Email:     data.Email,
+		User_type: data.User_type,
+		Nome:      data.Nome,
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Usuario cadastrado com sucesso",
+		"usuario": userResponse,
+	})
+
+}
+
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginResponse struct {
+	User_id   uuid.UUID      `json:"user_id"`
+	Email     string         `json:"email"`
+	Nome      string         `json:"nome"`
+	User_type model.UserType `json:"user_type"`
+	Message   string         `json:"message"`
+}
+
+// LoginUser godoc
+// @Summary Realiza login do usuário
+// @Description Autentica um usuário existente e retorna token JWT e dados do usuário
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param credentials body LoginRequest true "Credenciais de login"
+// @Success 200 {object} map[string]interface{} "Login realizado com sucesso!"
+// @Failure 400 {object} map[string]interface{} "email ou senha incorretos"
+// @Failure 401 {object} map[string]interface{} "Falha ao tentar autenticar usuário"
+// @Failure 500 {object} map[string]interface{} "Erro ao tentar buscar informações do usuário"
+// @Router /user/login [post]
+func LoginUser(c *gin.Context) {
+	var data LoginRequest
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Email ou senha incorretos",
+		})
+		return
+	}
+
+	var user model.User
+	if err := repository.DB.Where("email = ?", data.Email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Email ou senha incorretos",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro interno do servidor",
+		})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Email ou senha incorretos",
+		})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"subject":   user.User_id,
+		"exp":       time.Now().Add(2 * time.Hour).Unix(),
+		"user_type": user.User_type,
+	})
+
+	tokenString, err := token.SignedString([]byte(services.GetSecretKey()))
+	if err != nil {
+		log.Printf("Erro ao assinar token: %v", err)
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Falha ao tentar autenticar usuário",
+		})
+		return
+	}
+
+	response := LoginResponse{
+		User_id:   user.User_id,
+		Email:     user.Email,
+		Nome:      user.Nome,
+		User_type: user.User_type,
+		Message:   "Login realizado com sucesso!",
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", tokenString, 12*3600, "", "", false, true)
+
+	c.JSON(http.StatusOK, response)
+}
+
+type InscricaoRequest struct {
+	TurmaID int64 `json:"turma_id"`
+}
+
+// InscreverAluno godoc
+// @Summary Realiza a inscrição de um aluno em uma turma
+// @Description Inscreve o usuário autenticado em uma turma específica
+// @Tags Usuário
+// @Accept json
+// @Produce json
+// @Param   inscricao    body     InscricaoRequest true "ID da Turma"
+// @Success 201 {object} map[string]interface{} "Inscrição realizada com sucesso!"
+// @Failure 401 {object} map[string]interface{} "Token ausente ou inválido"
+// @Failure 404 {object} map[string]interface{} "Turma não encontrada"
+// @Security BearerAuth
+// @Router /user/inscricao [post]
+func InscreverAluno(c *gin.Context) {
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		return
+	}
+
+	var request InscricaoRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	var turma model.Turma
+	if err := repository.DB.First(&turma, request.TurmaID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	var alreadyExists model.Matricula
+	if err := repository.DB.Where("user_id = ? AND turma_id = ?", userID, request.TurmaID).
+		First(&alreadyExists).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Você já está inscrito nesta turma"})
+		return
+	}
+
+	inscricao := model.Matricula{
+		User_id:    uuid.MustParse(userID.(string)),
+		Turma_id:   request.TurmaID,
+		Created_At: time.Now(),
+	}
+
+	if err := repository.DB.Create(&inscricao).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao realizar inscrição"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
+}
+
+type InscricaoComTurma struct {
+	Turma TurmaResponseUser `json:"turma"`
+}
+
+type TurmaResponseUser struct {
+	Turma_id        int64        `json:"turma_id"`
+	Horario_Inicio  string       `json:"horario_inicio"`
+	Horario_Fim     string       `json:"horario_fim"`
+	LimiteInscritos int64        `json:"limite_inscritos"`
+	Dia_Semana      string       `json:"dia_semana"`
+	Sigla           string       `json:"sigla"`
+	Local           NomeResponse `json:"local"`
+	Modalidade      NomeResponse `json:"modalidade"`
+}
+
+type UserResponse struct {
+	User_id   uuid.UUID      `json:"user_id"`
+	User_type model.UserType `json:"user_type"`
+	Email     string         `json:"email"`
+	Nome      string         `json:"nome"`
+
+	Matriculas      []model.Matricula `json:"matriculas,omitempty"`
+	TurmasProfessor []model.Turma     `json:"turmas_professor,omitempty"`
+}
+
+func GetTurmasByUser(c *gin.Context) {
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
+		return
+	}
+
+	var matriculas []model.Matricula
+	if err := repository.DB.
+		Preload("Turma.Local").
+		Preload("Turma.Modalidade").
+		Where("user_id = ?", uuid.MustParse(userId.(string))).
+		Find(&matriculas).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar turmas", "detalhe": err.Error()})
+		return
+	}
+
+	turmas := make([]model.Turma, len(matriculas))
+	for i, m := range matriculas {
+		turmas[i] = m.Turma
+	}
+
+	c.JSON(http.StatusOK, gin.H{"turmas": turmas})
+}
+
+func GetUsers(c *gin.Context) {
+
+	var users []model.User
+
+	if err := repository.DB.Preload("Matriculas").Preload("TurmasProfessor").Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuários",
+			"causa": err.Error(),
+		})
+		return
+
+	}
+
+	var result []UserResponse
+
+	for _, user := range users {
+		userResp := UserResponse{
+			User_id:         user.User_id,
+			User_type:       user.User_type,
+			Email:           user.Email,
+			Nome:            user.Nome,
+			Matriculas:      user.Matriculas,
+			TurmasProfessor: user.TurmasProfessor,
+		}
+
+		switch user.User_type {
+		case model.Aluno:
+			userResp.Matriculas = user.Matriculas
+
+		case model.Professor:
+			userResp.TurmasProfessor = user.TurmasProfessor
+
+		}
+		result = append(result, userResp)
+
+	}
+	c.JSON(200, result)
+}
+
+func GetUserById(c *gin.Context) {
+
+	var user model.User
+
+	userId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Usuário não encontrado",
+			"causa": err.Error()})
+		return
+	}
+
+	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuário",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	userResp := UserResponse{
+		User_id:         user.User_id,
+		User_type:       user.User_type,
+		Email:           user.Email,
+		Nome:            user.Nome,
+		Matriculas:      user.Matriculas,
+		TurmasProfessor: user.TurmasProfessor,
+	}
+
+	switch user.User_type {
+	case model.Aluno:
+		userResp.Matriculas = user.Matriculas
+
+	case model.Professor:
+		userResp.TurmasProfessor = user.TurmasProfessor
+
+	}
+
+	c.JSON(200, userResp)
+}

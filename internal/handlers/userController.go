@@ -377,3 +377,45 @@ func GetUserById(c *gin.Context) {
 
 	c.JSON(200, userResp)
 }
+
+func DeleteUserById(c *gin.Context){
+
+	var user model.User
+
+	userId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Usuário não encontrado",
+			"causa": err.Error()})
+		return
+	}
+
+	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuário",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	if err := repository.DB.Delete(&user, userId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Usuario nao encontrado",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro interno do servidor",
+		})
+		return
+	}
+
+	 c.JSON(http.StatusOK, gin.H{
+		"message":"Usuario deletado com sucesso",
+	})
+	return
+
+}
+

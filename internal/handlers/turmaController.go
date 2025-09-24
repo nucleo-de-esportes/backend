@@ -71,16 +71,16 @@ func CreateTurma(c *gin.Context) {
 
 	var newTurma Turma
 
-	userType, exists := c.Get("user_type")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
-		return
-	}
+	//userType, exists := c.Get("user_type")
+	//if !exists {
+	//	c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+	//	return
+	//}
 
-	if userType != model.Admin {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
-		return
-	}
+	//if userType != model.Admin {
+	//	c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+	//	return
+//	}
 
 	if err := c.ShouldBindJSON(&newTurma); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
@@ -393,6 +393,7 @@ func CreateAula(c *gin.Context) {
 	var aulaRequest struct {
 		Data string `json:"data" binding:"required"` // Formato YYYY-MM-DD
 		Hora string `json:"hora"`
+		Hora_fim string `json:"hora_fim"`
 	}
 
 	if err := c.ShouldBindJSON(&aulaRequest); err != nil {

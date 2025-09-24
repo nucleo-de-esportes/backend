@@ -377,3 +377,96 @@ func GetUserById(c *gin.Context) {
 
 	c.JSON(200, userResp)
 }
+
+func DeleteUserById(c *gin.Context){
+
+	var user model.User
+
+	userId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Usuário não encontrado",
+			"causa": err.Error()})
+		return
+	}
+
+	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuário",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	if err := repository.DB.Delete(&user, userId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Usuario nao encontrado",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro interno do servidor",
+		})
+		return
+	}
+
+	 c.JSON(http.StatusOK, gin.H{
+		"message":"Usuario deletado com sucesso",
+	})
+	return
+
+}
+
+func DeleteUserTurma(c *gin.Context){
+
+	
+	
+
+	userId, err := uuid.Parse(c.Param("user_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Usuário não encontrado",
+			"causa": err.Error()})
+		return
+	}
+
+	turmaId, err := uuid.Parse(c.Param("turma_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Turma não encontrado",
+			"causa": err.Error()})
+		return
+	}
+
+	// Verifica se a matricula existe antes de deletar
+    var matricula model.Matricula
+    if err := repository.DB.Where("user_id = ? AND turma_id = ?", userId, turmaId).First(&matricula).Error; err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            c.JSON(http.StatusNotFound, gin.H{
+                "error": "Matricula nao encontrada para este usuario e turma",
+            })
+            return
+        }
+        
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": "Erro interno do servidor",
+        })
+        return
+    }
+
+   
+    if err := repository.DB.Where("user_id = ? AND turma_id = ?", userId, turmaId).Delete(&model.Matricula{}).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": "Erro ao remover usuário da turma",
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Usuário removido da turma com sucesso!",
+    })
+
+
+}

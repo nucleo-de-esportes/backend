@@ -48,7 +48,6 @@ func main() {
 
 	cadRoutes.GET("local", handlers.GetAllLocais)
 
-	// // Rotas de turma, sem middleware nem auth
 	turmaRoutes.POST("", middleware.AuthUser, handlers.CreateTurma)
 
 	turmaRoutes.DELETE("/:id", handlers.DeleteTurma)
@@ -60,8 +59,8 @@ func main() {
 	turmaRoutes.GET("/nextclass/:id", handlers.GetNextClassById)
 
 	turmaRoutes.PUT("/:id", handlers.UpdateTurma)
+	turmaRoutes.POST("/aula/:id", handlers.CreateAula)
 
-	// Rotas de usuário - temporariamente comentadas para testes
 	userRoutes := router.Group("/user")
 	userRoutes.POST("/register", handlers.RegisterUser)
 	userRoutes.GET("", handlers.GetUsers)

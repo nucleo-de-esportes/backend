@@ -1,13 +1,19 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
+	"gorm.io/gorm"
 )
 
 type Turma struct {
@@ -317,4 +323,202 @@ func UpdateTurma(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, updatedTurma)
+}
+
+func GetNextClassById(c *gin.Context) {
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "ID da turma inválido",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	var turma model.Turma
+	if err := repository.DB.First(&turma, turmaId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Turma não encontrada",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao buscar turma",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	var aula model.Aula
+
+	if err := repository.DB.
+		Preload("Turma").
+		Preload("Turma.Local").
+		Preload("Turma.Modalidade").
+		Preload("Turma.Professor").
+		Where("turma_id = ? AND data_hora > ?", turmaId, time.Now()).
+		Order("data_hora ASC").
+		First(&aula).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "Nenhuma próxima aula encontrada para esta turma",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao buscar próxima aula",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"aula": aula,
+	})
+}
+
+func CreateAula(c *gin.Context) {
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "ID da turma inválido",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	var aulaRequest struct {
+		Data string `json:"data" binding:"required"` // Formato YYYY-MM-DD
+		Hora string `json:"hora"`
+	}
+
+	if err := c.ShouldBindJSON(&aulaRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Dados inválidos",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	var turma model.Turma
+	if err := repository.DB.First(&turma, turmaId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Turma não encontrada",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao buscar turma",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	data, err := time.Parse("2006-01-02", aulaRequest.Data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Formato de data inválido. Use YYYY-MM-DD",
+		})
+		return
+	}
+
+	hoje := time.Now().Truncate(24 * time.Hour)
+	if data.Before(hoje) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Não é possível criar aula em data passada",
+		})
+		return
+	}
+
+	diasEmPortugues := map[time.Weekday]string{
+		time.Sunday:    "Domingo",
+		time.Monday:    "Segunda-feira",
+		time.Tuesday:   "Terça-feira",
+		time.Wednesday: "Quarta-feira",
+		time.Thursday:  "Quinta-feira",
+		time.Friday:    "sexta",
+		time.Saturday:  "sabado",
+	}
+
+	diaSemanaData := diasEmPortugues[data.Weekday()]
+	if !strings.EqualFold(diaSemanaData, turma.Dia_Semana) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("A data escolhida (%s) não corresponde ao dia da semana da turma (%s)",
+				diaSemanaData, turma.Dia_Semana),
+		})
+		return
+	}
+
+	var dataHoraCompleta time.Time
+
+	if aulaRequest.Hora != "" {
+
+		hora, err := time.Parse("15:04", aulaRequest.Hora)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Formato de hora inválido. Use HH:MM",
+			})
+			return
+		}
+		dataHoraCompleta = time.Date(data.Year(), data.Month(), data.Day(),
+			hora.Hour(), hora.Minute(), 0, 0, data.Location())
+	} else {
+
+		horaInicio, err := time.Parse("15:04", turma.Horario_Inicio)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Horário de início da turma está em formato inválido",
+			})
+			return
+		}
+		dataHoraCompleta = time.Date(data.Year(), data.Month(), data.Day(),
+			horaInicio.Hour(), horaInicio.Minute(), 0, 0, data.Location())
+	}
+
+	var aulaExistente model.Aula
+	if err := repository.DB.Where("turma_id = ? AND data_hora = ?", turmaId, dataHoraCompleta).First(&aulaExistente).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "Já existe uma aula para esta turma nesta data e horário",
+		})
+		return
+	}
+
+	novaAula := model.Aula{
+		TurmaID:  turmaId,
+		DataHora: dataHoraCompleta,
+		CriadoEm: time.Now(),
+	}
+
+	if err := repository.DB.Create(&novaAula).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Erro ao criar nova aula",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	//preload é para os relacionamentos
+	var aulaCompleta model.Aula
+	if err := repository.DB.
+		Preload("Turma").
+		Preload("Turma.Local").
+		Preload("Turma.Modalidade").
+		Preload("Turma.Professor").
+		First(&aulaCompleta, novaAula.ID).Error; err != nil {
+
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "Aula criada com sucesso",
+			"aula":    novaAula,
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Aula criada com sucesso",
+		"aula":    aulaCompleta,
+	})
 }

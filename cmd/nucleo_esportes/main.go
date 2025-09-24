@@ -48,7 +48,7 @@ func main() {
 
 	cadRoutes.GET("local", handlers.GetAllLocais)
 
-	turmaRoutes.POST("", middleware.AuthUser, handlers.CreateTurma)
+	turmaRoutes.POST("", middleware.AuthUser,handlers.CreateTurma)
 
 	turmaRoutes.DELETE("/:id", handlers.DeleteTurma)
 
@@ -68,6 +68,7 @@ func main() {
 	userRoutes.POST("/login", handlers.LoginUser)
 	userRoutes.POST("/inscricao", middleware.AuthUser, handlers.InscreverAluno)
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
+	userRoutes.DELETE("/:id",handlers.DeleteUserById)
 
 	port := os.Getenv("PORT")
 	if port == "" {

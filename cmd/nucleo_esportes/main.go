@@ -69,6 +69,8 @@ func main() {
 	userRoutes.POST("/login", handlers.LoginUser)
 	userRoutes.POST("/inscricao", middleware.AuthUser, handlers.InscreverAluno)
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
+	userRoutes.DELETE("/:user_id/turma/:turma_id", handlers.DeleteUserTurma)
+	userRoutes.DELETE(("/delete/:id"), handlers.DeleteUserById)
 
 	port := os.Getenv("PORT")
 	if port == "" {

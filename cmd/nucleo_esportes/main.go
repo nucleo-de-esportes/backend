@@ -1,12 +1,16 @@
 package main
 
 import (
+	"flag"
+	"log"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/nucleo-de-esportes/backend/docs"
+	"github.com/nucleo-de-esportes/backend/internal/config"
 	"github.com/nucleo-de-esportes/backend/internal/handlers"
 	"github.com/nucleo-de-esportes/backend/internal/middleware"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
@@ -25,6 +29,19 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and a JWT token.
 func main() {
+	// Flag para carregar .env
+	useDotEnv := flag.Bool("dotenv", false, "Carregar variáveis do arquivo .env")
+	flag.Parse()
+
+	// Se a flag for true, carrega o .env
+	if *useDotEnv {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
+
+	// Carregar configurações
+	_ = config.LoadConfig()
 
 	repository.Init()
 

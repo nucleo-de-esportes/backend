@@ -3,10 +3,8 @@ package repository
 import (
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/joho/godotenv"
+	"github.com/nucleo-de-esportes/backend/internal/config"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,17 +12,8 @@ import (
 
 var DB *gorm.DB
 
-func Init() {
-
-	err := godotenv.Load(filepath.Join("../../", "dbVariables.env"))
-	if err != nil {
-		log.Fatal("Erro ao carregar arquivo .env")
-	}
-
-	db_name := os.Getenv("DB_NAME")
-	db_password := os.Getenv("DB_PASSWORD")
-
-	dsn := fmt.Sprintf("host=localhost user=postgres password=%s dbname=%s port=5432 sslmode=disable TimeZone=America/Sao_Paulo", db_password, db_name)
+func Init(cfg config.DatabaseConfig) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Sao_Paulo", cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port)
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {

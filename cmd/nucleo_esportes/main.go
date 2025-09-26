@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -41,9 +40,9 @@ func main() {
 	}
 
 	// Carregar configurações
-	_ = config.LoadConfig()
+	cfg := config.LoadConfig()
 
-	repository.Init()
+	repository.Init(cfg.DB)
 
 	router := gin.Default()
 
@@ -87,10 +86,5 @@ func main() {
 	userRoutes.POST("/inscricao", middleware.AuthUser, handlers.InscreverAluno)
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
-	}
-
-	router.Run(port)
+	router.Run(cfg.Server.Port)
 }

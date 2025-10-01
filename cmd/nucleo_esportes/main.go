@@ -49,7 +49,7 @@ func main() {
 	cadRoutes.GET("local", handlers.GetAllLocais)
 
 	// // Rotas de turma, sem middleware nem auth
-	turmaRoutes.POST("", middleware.AuthUser, handlers.CreateTurma)
+	turmaRoutes.POST("", handlers.CreateTurma)
 
 	turmaRoutes.DELETE("/:id", handlers.DeleteTurma)
 

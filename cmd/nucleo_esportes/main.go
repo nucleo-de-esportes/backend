@@ -43,6 +43,7 @@ func main() {
 
 	turmaRoutes := router.Group("/turmas")
 	cadRoutes := router.Group("/cad")
+	aulaRoutes := router.Group("/aulas")
 
 	cadRoutes.GET("/mod", handlers.GetAllModalidades)
 
@@ -71,6 +72,8 @@ func main() {
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
 	userRoutes.DELETE("/:user_id/turma/:turma_id", middleware.AuthUser, handlers.DeleteUserTurma)
 	userRoutes.DELETE(("/delete/:id"), middleware.AuthUser, handlers.DeleteUserById)
+
+	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 
 	port := os.Getenv("PORT")
 	if port == "" {

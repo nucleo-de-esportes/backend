@@ -1,47 +1,35 @@
 package config
 
 import (
-	"os"
-	"strings"
+	"log"
+
+	"github.com/caarlos0/env/v11"
 )
 
 type DatabaseConfig struct {
-	Host     string
-	Port     string
-	Name     string
-	User     string
-	Password string
+	Driver   string `env:"DRIVER"`
+	Host     string `env:"HOST" envDefault:"localhost"`
+	Port     string `env:"PORT" envDefault:"5432"`
+	Name     string `env:"NAME"`
+	User     string `env:"USER" envDefault:"postgres"`
+	Password string `env:"PASSWORD"`
 }
 
 type ServerConfig struct {
-	Port string
+	Port string `env:"PORT" envDefault:"8000"`
 }
 
 type Config struct {
-	DB     DatabaseConfig
-	Server ServerConfig
+	DB     DatabaseConfig `envPrefix:"DB_"`
+	Server ServerConfig   `envPrefix:"SERVER_"`
 }
 
 func LoadConfig() *Config {
-	return &Config{
-		Server: ServerConfig{
-			Port: getEnv("SERVER_PORT", "8000"),
-		},
-		DB: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
-			Name:     getEnv("BB_NAME", ""),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", ""),
-		},
-	}
-}
+	var cfg Config
 
-// getEnv obtém uma variável de ambiente ou retorna um valor padrão
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if strings.TrimSpace(value) == "" {
-		return defaultValue
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatalf("erro ao carregar variáveis de ambiente: %v", err)
 	}
-	return value
+
+	return &cfg
 }

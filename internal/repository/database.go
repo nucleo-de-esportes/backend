@@ -1,29 +1,41 @@
+
 package repository
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nucleo-de-esportes/backend/internal/config"
 	"github.com/nucleo-de-esportes/backend/internal/model"
-	"gorm.io/driver/postgres"
+	"github.com/nucleo-de-esportes/backend/internal/repository/connector"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
+// Init inicializa a conexão com o banco e executa as migrações.
 func Init(cfg config.DatabaseConfig) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Sao_Paulo", cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port)
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
+	conn, err := connector.New(cfg.Driver)
 	if err != nil {
-		log.Fatal("Erro ao tentar conectar com o banco de dados: ", err)
+		log.Fatal(err)
+	}
+
+	database, err := conn.Connect(cfg)
+	if err != nil {
+		log.Fatalf("Erro ao conectar ao banco (%s): %v", cfg.Driver, err)
 	}
 
 	DB = database
-	log.Printf("Conexao feita com sucesso!")
+	log.Printf("Conexão feita com sucesso usando %s!", cfg.Driver)
 
-	err = DB.AutoMigrate(
+	if err := migrate(); err != nil {
+		log.Printf("Erro na migração das tabelas: %v", err)
+	} else {
+		log.Printf("Tabelas migradas com sucesso!")
+	}
+}
+
+func migrate() error {
+	return DB.AutoMigrate(
 		&model.User{},
 		&model.Local{},
 		&model.Modalidade{},
@@ -32,9 +44,5 @@ func Init(cfg config.DatabaseConfig) {
 		&model.Aula{},
 		&model.Presenca{},
 	)
-	if err != nil {
-		log.Printf("Erro na migração das tabelas: %v", err)
-	} else {
-		log.Printf("Tabelas migradas com sucesso!")
-	}
 }
+

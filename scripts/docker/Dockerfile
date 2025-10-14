@@ -24,7 +24,7 @@ RUN mkdir -p /app/bin
 FROM builder AS build
 
 # Compilar a aplicação Go para um binário pequeno e otimizado
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o /app/bin/api ./main
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o /app/bin/api ./cmd/nucleo_esportes/
 
 # Fase 3: Imagem final
 FROM scratch AS final

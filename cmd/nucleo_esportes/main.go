@@ -29,11 +29,12 @@ import (
 // @description Type "Bearer" followed by a space and a JWT token.
 func main() {
 	// Flag para carregar .env
-	useDotEnv := flag.Bool("dotenv", false, "Carregar variáveis do arquivo .env")
+
+	vars := flag.String("vars", "file", "Define origem das variáveis de ambiente: 'file' (.env) ou 'exported' (sistema).")
 	flag.Parse()
 
-	// Se a flag for true, carrega o .env
-	if *useDotEnv {
+	// Se vars igual a "file", carrega o .env
+	if *vars == "file" {
 		if err := godotenv.Load(); err != nil {
 			log.Fatal("Error loading .env file")
 		}

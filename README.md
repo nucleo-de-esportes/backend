@@ -38,7 +38,7 @@ DB_USER=postgres
 DB_PASSWORD=senha_segura
 
 # Configuração do Servidor
-SERVER_PORT="8000"
+SERVER_PORT="8080"
 ```
 
 ### Descrição das variáveis
@@ -71,6 +71,35 @@ go build ./...
 
 ``` sh
 go run ./...
+```
+
+## 🐳 Executando com Docker Compose
+
+Para subir a API e o banco de dados de forma simplificada, utilize Docker Compose.
+
+### Passos
+
+1. Crie o arquivo .env na raiz do projeto (conforme exemplo acima).
+
+2. Suba os containers:
+
+``` sh
+docker compose up --build
+```
+
+3. A API ficará acessível em:
+
+http://localhost:8080
+
+
+4. O PostgreSQL estará disponível em:
+
+``` yml
+Host: localhost
+Port: 5432
+Database: nucleo_esportes
+User: postgres
+Password: senha_segura
 ```
 
 ------------------------------------------------------------------------

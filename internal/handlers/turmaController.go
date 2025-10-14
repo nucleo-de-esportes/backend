@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
-	"time"
-	"strings"
-	
+	"github.com/nucleo-de-esportes/backend/internal/services"
 )
 
 type Turma struct {
@@ -28,7 +28,6 @@ type TurmaResponse struct {
 	Horario_Inicio  string `json:"horario_inicio"`
 	Horario_Fim     string `json:"horario_fim"`
 	LimiteInscritos int64  `json:"limite_inscritos"`
-	Dia_Semana      string `json:"dia_semana"`
 	Sigla           string `json:"sigla"`
 	Local_nome      string `json:"local"`
 	Modalidade_nome string `json:"modalidade"`
@@ -53,6 +52,60 @@ func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string
 	return response
 }
 
+type ConfiguracaoModalidade struct {
+	DiasSemana         []string
+	HorarioInicio      string
+	HorarioFim         string
+	Local              string
+	HorariosPermitidos []HorarioPermitido // Pra modalidades com varios horarios como nado livre
+}
+
+type HorarioPermitido struct {
+	Inicio string
+	Fim    string
+}
+
+var configuracoesModalidades = map[string]ConfiguracaoModalidade{
+	"Clube de corrida": {
+		DiasSemana:    []string{"segunda", "quarta"},
+		HorarioInicio: "06:30",
+		HorarioFim:    "07:30",
+		Local:         "Bloco 10 campus asa norte",
+	},
+	"Voleibol": {
+		DiasSemana:    []string{"terça", "quinta"},
+		HorarioInicio: "11:30",
+		HorarioFim:    "12:30",
+		Local:         "Bloco 10 campus asa norte",
+	},
+	"Defesa pessoal": {
+		DiasSemana:    []string{"segunda", "quarta"},
+		HorarioInicio: "11:30",
+		HorarioFim:    "12:30",
+		Local:         "Ginásio bloco 4 campus asa norte",
+	},
+	"Mobilidade e alongamento": {
+		DiasSemana:    []string{"terça", "quinta"},
+		HorarioInicio: "11:30",
+		HorarioFim:    "12:30",
+		Local:         "Bloco 10 campus asa norte",
+	},
+	"Natação": {
+		DiasSemana: []string{"segunda", "quarta"},
+		Local:      "Piscina ao lado do bloco 10 campus asa norte",
+		HorariosPermitidos: []HorarioPermitido{
+			{Inicio: "11:00", Fim: "11:50"},
+			{Inicio: "11:50", Fim: "12:40"},
+		},
+	},
+	"Nado livre": {
+		DiasSemana: []string{"segunda", "quarta", "sexta"},
+		Local:      "Piscina",
+
+		HorariosPermitidos: []HorarioPermitido{}, // Validação diferente
+	},
+}
+
 // CreateTurma godoc
 // @Summary Cria uma nova turma
 // @Description Cria uma nova turma com dados como horário, limite de inscritos, dia da semana, local e modalidade.
@@ -68,16 +121,16 @@ func CreateTurma(c *gin.Context) {
 
 	var newTurma Turma
 
-	userType, exists := c.Get("user_type")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
-		return
-	}
+	//userType, exists := c.Get("user_type")
+	//if !exists {
+	//	c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+	//	return
+	//}
 
-	if userType != model.Admin {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
-		return
-	}
+	//if userType != model.Admin {
+	//	c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem criar turmas."})
+	//	return
+	//}
 
 	if err := c.ShouldBindJSON(&newTurma); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
@@ -103,28 +156,117 @@ func CreateTurma(c *gin.Context) {
 		return
 	}
 
+	// Verificar se a modalidade escolhida tem horários definidos
+	config, existe := configuracoesModalidades[modalidade.Nome]
+	if !existe {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Modalidade não possui horários configurados",
+		})
+		return
+	}
+
+	if len(config.HorariosPermitidos) == 0 && config.HorarioInicio != "" {
+
+		if newTurma.Horario_Inicio != config.HorarioInicio || newTurma.Horario_Fim != config.HorarioFim {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Horário inválido para esta modalidade",
+				"horario_correto": gin.H{
+					"inicio": config.HorarioInicio,
+					"fim":    config.HorarioFim,
+				},
+			})
+			return
+		}
+	} else if len(config.HorariosPermitidos) > 0 && modalidade.Nome != "Nado livre" {
+		// Verificar se o horário fornecido está na lista de horários permitidos
+		horarioValido := false
+		for _, h := range config.HorariosPermitidos {
+			if newTurma.Horario_Inicio == h.Inicio && newTurma.Horario_Fim == h.Fim {
+				horarioValido = true
+				break
+			}
+		}
+		if !horarioValido {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":                "Horário inválido para esta modalidade",
+				"horarios_disponiveis": config.HorariosPermitidos,
+			})
+			return
+		}
+	} else if modalidade.Nome == "Nado livre" {
+		// Validacao especial para Nado livre (11h as 20h)
+		if !services.ValidarHorarioNadoLivre(newTurma.Horario_Inicio, newTurma.Horario_Fim) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Horário deve estar entre 11:00 e 20:00",
+			})
+			return
+		}
+	}
+
+	// Garante que a turma so sera criada se a aula for criada tambem, caso a aula nao seja criada a turma tambem não será
+	tx := repository.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao iniciar transação"})
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	turmaModel := model.Turma{
 		Horario_Inicio:  newTurma.Horario_Inicio,
 		Horario_Fim:     newTurma.Horario_Fim,
 		LimiteInscritos: newTurma.LimiteInscritos,
-		Dia_Semana:      newTurma.Dia_Semana,
 		Sigla:           newTurma.Sigla,
 		Local_Id:        newTurma.Local_Id,
 		Modalidade_Id:   newTurma.Modalidade_Id,
 	}
 
-	if err := repository.DB.Create(&turmaModel).Error; err != nil {
+	if err := tx.Create(&turmaModel).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Criar aulas para TODOS os dias da semana da modalidade
+	aulasIds := []uint{}
+	for _, diaSemana := range config.DiasSemana {
+		proximaDataAula := services.CalcularProximaAula(diaSemana)
+		dataHoraInicio := services.CombinarDataHora(proximaDataAula, newTurma.Horario_Inicio)
+		dataHoraFim := services.CombinarDataHora(proximaDataAula, newTurma.Horario_Fim)
+
+		aulaModel := model.Aula{
+			TurmaID:     turmaModel.Turma_id,
+			DataHora:    dataHoraInicio,
+			DataHoraFim: dataHoraFim,
+			CriadoEm:    time.Now(),
+		}
+
+		if err := tx.Create(&aulaModel).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Erro ao criar aula para " + diaSemana + ": " + err.Error(),
+			})
+			return
+		}
+
+		aulasIds = append(aulasIds, aulaModel.ID)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao salvar dados"})
+		return
+	}
+
 	turmaResponse := ConvertToTurmaResponse(newTurma, local.Nome, modalidade.Nome)
-
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Turma criada com sucesso",
-		"data":    turmaResponse,
+		"message":       "Turma criada com sucesso",
+		"data":          turmaResponse,
+		"aulas_criadas": len(aulasIds),
+		"aulas_ids":     aulasIds,
 	})
-
 }
 
 // DeleteTurma godoc
@@ -257,7 +399,6 @@ func GetAllTurmas(c *gin.Context) {
 			Horario_Inicio:  turma.Horario_Inicio,
 			Horario_Fim:     turma.Horario_Fim,
 			LimiteInscritos: turma.LimiteInscritos,
-			Dia_Semana:      turma.Dia_Semana,
 			Sigla:           turma.Sigla,
 			Local_nome:      local.Nome,
 			Modalidade_nome: modalidade.Nome,
@@ -322,117 +463,37 @@ func UpdateTurma(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedTurma)
 }
 
-func GetNextClassById(c *gin.Context){
+func GetNextClassById(c *gin.Context) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Id da turma não encontrado",
+			"error":   "Id da turma não encontrado",
 			"details": err.Error(),
-
 		})
 		return
 	}
 
 	var aula model.Aula
 
-	if err := repository.DB.Where("turma_id = ? AND data_hora > NOW()",turmaId).Order("data_hora ASC").First(&aula).Error; err != nil{
+	if err := repository.DB.Where("turma_id = ? AND data_hora > NOW()", turmaId).Order("data_hora ASC").First(&aula).Error; err != nil {
 
-		if err.Error() == "record not found"{
+		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "Nenhuma aula encontrada para esta turma",
 			})
 		}
 		return
-	} 
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Erro ao tentar encontrar proxima aula",
+			"error":   "Erro ao tentar encontrar proxima aula",
 			"details": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(200, aula)
-
-}
-
-func CreateAula(c *gin.Context){
-
-	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Id da turma não encontrado",
-			"details": err.Error(),
-
-		})
-		return
-	}
-
-	
-
-	var aulaRequest struct{
-		Data string `json:"data" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&aulaRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
-	var turma model.Turma
-
-	if err := repository.DB.First(&turma, turmaId).Error; err != nil{
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Turma não encontrada",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	data, err := time.Parse("2006-Jan-02", aulaRequest.Data)
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	diasEmPortugues := map[time.Weekday]string{
-		time.Sunday:    "Domingo",
-		time.Monday:    "Segunda-feira",
-		time.Tuesday:   "Terça-feira",
-		time.Wednesday: "Quarta-feira",
-		time.Thursday:  "Quinta-feira",
-		time.Friday:    "Sexta-feira",
-		time.Saturday:  "Sábado",
-	}
-
-	diaSemanaPortugues := diasEmPortugues[data.Weekday()]
-	if !strings.EqualFold(diaSemanaPortugues,turma.Dia_Semana){
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":"Data não corresponde a dia da turma",
-		})
-		return
-	}
-
-	 aula := model.Aula{
-		TurmaID: turmaId,
-		DataHora: data,
-		CriadoEm: time.Now(),
-	}
-
-	if err := repository.DB.Create(&aula).Error; err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Erro ao tentar criar nova aula",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(201, aula)
 
 }

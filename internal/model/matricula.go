@@ -12,7 +12,7 @@ type Matricula struct {
 	Turma_id   int64     `json:"turma_id" gorm:"not null"`
 	Created_At time.Time `json:"created_at" gorm:"autoCreateTime"`
 
-	User  User  `json:"user" gorm:"foreignKey:User_id"`
+	User  User  `json:"-" gorm:"foreignKey:User_id"`
 	Turma Turma `json:"turma" gorm:"foreignKey:Turma_id"`
 }
 

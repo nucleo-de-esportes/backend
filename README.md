@@ -32,13 +32,13 @@ projeto ou exportadas diretamente no ambiente do sistema.
 # Configurações do Banco de Dados
 DB_DRIVER=postgres
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT="5432"
 DB_NAME=nucleo_esportes
 DB_USER=postgres
 DB_PASSWORD=senha_segura
 
 # Configuração do Servidor
-SERVER_PORT=8000
+SERVER_PORT="8000"
 ```
 
 ### Descrição das variáveis

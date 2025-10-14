@@ -16,7 +16,7 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	Port string `env:"PORT" envDefault:"8000"`
+	Port string `env:"PORT" envDefault:"8080"`
 }
 
 type Config struct {

@@ -92,5 +92,5 @@ func main() {
 
 	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 
-	router.Run(cfg.Server.Port)
+	router.Run(":" + cfg.Server.Port)
 }

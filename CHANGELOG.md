@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/nucleo-de-esportes/backend/compare/v1.0.1...v1.0.2) (2025-10-19)
+
+
+### Bug Fixes
+
+* adiciona trigger para pre-releases ([740c190](https://github.com/nucleo-de-esportes/backend/commit/740c190f173c640e7ca3582e1ebaf2855ae05e31))
+
 ## [1.0.1](https://github.com/nucleo-de-esportes/backend/compare/v1.0.0...v1.0.1) (2025-10-19)
 
 

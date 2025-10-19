@@ -1,6 +1,5 @@
 {
   "branches": ["main", "refactor/cloud-configs"],
-  "repositoryUrl": "https://github.com/nucleo-de-esportes/backend",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",

@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/nucleo-de-esportes/backend/compare/v1.0.2...v1.0.3) (2025-10-19)
+
+
+### Refactoring
+
+* unifica release e build em um único workflow ([95617eb](https://github.com/nucleo-de-esportes/backend/commit/95617eb0e2e8468644f1becb282e02d3f215f9c9))
+
 ## [1.0.2](https://github.com/nucleo-de-esportes/backend/compare/v1.0.1...v1.0.2) (2025-10-19)
 
 

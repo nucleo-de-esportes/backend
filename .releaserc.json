@@ -1,5 +1,5 @@
 {
-  "branches": ["main", "refactor/cloud-configs"],
+  "branches": ["main"],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",

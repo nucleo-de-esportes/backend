@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/nucleo-de-esportes/backend/compare/v1.0.0...v1.0.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* adiciona trigger de release para acionar build automaticamente ([4a1eb84](https://github.com/nucleo-de-esportes/backend/commit/4a1eb8431ac2788124dc82becdde86ee7bc196f5))
+
 ## 1.0.0 (2025-10-19)
 
 

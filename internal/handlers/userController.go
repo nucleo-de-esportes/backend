@@ -415,7 +415,6 @@ func DeleteUserById(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Usuario deletado com sucesso",
 	})
-	return
 
 }
 

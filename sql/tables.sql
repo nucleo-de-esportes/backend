@@ -76,3 +76,9 @@ CREATE TABLE presenca (
     CONSTRAINT fk_presenca_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT uq_presenca UNIQUE (aula_id, user_id)  -- 1 aluno só tenha 1 registro por aula
 );
+
+/**
+AJUSTANDO O INCREMENT DOS IDS DAS TURMAS, POIS ESTAVA COMEÇANDO COM TURMA DE ID 0
+**/
+ALTER SEQUENCE turma_turma_id_seq RESTART WITH 1;
+

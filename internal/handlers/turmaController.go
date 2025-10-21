@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"time"
 
@@ -222,6 +223,7 @@ func CreateTurma(c *gin.Context) {
 		Sigla:           newTurma.Sigla,
 		Local_Id:        newTurma.Local_Id,
 		Modalidade_Id:   newTurma.Modalidade_Id,
+		Dia_Semana:      strings.Join(config.DiasSemana, ","),
 	}
 
 	if err := tx.Create(&turmaModel).Error; err != nil {

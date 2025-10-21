@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"github.com/nucleo-de-esportes/backend/internal/dto"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 	"github.com/nucleo-de-esportes/backend/internal/services"
@@ -43,6 +44,7 @@ type RegisterResponse struct {
 // @Failure 400 {object} map[string]interface{} "Credenciais incorretas ou tipo de usuário inválido"
 // @Failure 500 {object} map[string]interface{} "Erro ao tentar cadastrar usuario"
 // @Router /user/register [post]
+
 func RegisterUser(c *gin.Context) {
 
 	var data RegisterRequest
@@ -290,12 +292,36 @@ func GetTurmasByUser(c *gin.Context) {
 		return
 	}
 
-	turmas := make([]model.Turma, len(matriculas))
-	for i, m := range matriculas {
-		turmas[i] = m.Turma
+	var turmasResponse []dto.TurmaResponse
+	for _, m := range matriculas {
+		t := m.Turma
+
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", t.Turma_id).
+			Count(&total)
+
+		turmasResponse = append(turmasResponse, dto.TurmaResponse{
+			TurmaID:         uint(t.Turma_id),
+			HorarioInicio:   t.Horario_Inicio,
+			HorarioFim:      t.Horario_Fim,
+			LimiteInscritos: int(t.LimiteInscritos),
+			DiaSemana:       t.Dia_Semana,
+			Sigla:           t.Sigla,
+			Total_alunos:    int(total),
+			Local: dto.LocalResponseDto{
+				Nome:   t.Local.Nome,
+				Campus: t.Local.Campus,
+			},
+			Modalidade: dto.ModalidadeResponseDto{
+				Nome:           t.Modalidade.Nome,
+				ValorAluno:     t.Modalidade.Valor_aluno,
+				ValorProfessor: t.Modalidade.Valor_professor,
+			},
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"turmas": turmas})
+	c.JSON(http.StatusOK, gin.H{"turmas": turmasResponse})
 }
 
 func GetUsers(c *gin.Context) {

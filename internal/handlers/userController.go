@@ -250,6 +250,27 @@ func InscreverAluno(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
 }
 
+func AtribuirProfessor(c *gin.Context) {
+	var input struct {
+		Turma_id     int64     `json:"turma_id"`
+		Professor_id uuid.UUID `json:"professor_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	if err := repository.DB.Model(&model.Turma{}).
+		Where("turma_id = ?", input.Turma_id).
+		Update("professor_id", input.Professor_id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar turma"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Professor atribuído à turma com sucesso"})
+}
+
 type InscricaoComTurma struct {
 	Turma TurmaResponseUser `json:"turma"`
 }
@@ -328,13 +349,17 @@ func GetUsers(c *gin.Context) {
 
 	var users []model.User
 
-	if err := repository.DB.Preload("Matriculas").Preload("TurmasProfessor").Find(&users).Error; err != nil {
+	if err := repository.DB.
+		Preload("Matriculas.Turma.Local").
+		Preload("Matriculas.Turma.Modalidade").
+		Preload("TurmasProfessor.Local").
+		Preload("TurmasProfessor.Modalidade").
+		Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar usuários",
 			"causa": err.Error(),
 		})
 		return
-
 	}
 
 	var result []UserResponse

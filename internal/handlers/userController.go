@@ -313,7 +313,9 @@ func GetTurmasByUser(c *gin.Context) {
 		return
 	}
 
-	var turmasResponse []dto.TurmaResponse
+	var turmasInscritas []dto.TurmaResponse
+	var turmasMinistradas []dto.TurmaResponse
+
 	for _, m := range matriculas {
 		t := m.Turma
 
@@ -322,7 +324,7 @@ func GetTurmasByUser(c *gin.Context) {
 			Where("turma_id = ?", t.Turma_id).
 			Count(&total)
 
-		turmasResponse = append(turmasResponse, dto.TurmaResponse{
+		turmasInscritas = append(turmasInscritas, dto.TurmaResponse{
 			TurmaID:         uint(t.Turma_id),
 			HorarioInicio:   t.Horario_Inicio,
 			HorarioFim:      t.Horario_Fim,
@@ -342,7 +344,44 @@ func GetTurmasByUser(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"turmas": turmasResponse})
+	var turmasProfessor []model.Turma
+	if err := repository.DB.
+		Preload("Local").
+		Preload("Modalidade").
+		Where("professor_id = ?", userId).
+		Find(&turmasProfessor).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar turmas (professor)", "detalhe": err.Error()})
+		return
+	}
+
+	for _, t := range turmasProfessor {
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", t.Turma_id).
+			Count(&total)
+
+		turmasMinistradas = append(turmasMinistradas, dto.TurmaResponse{
+			TurmaID:         uint(t.Turma_id),
+			HorarioInicio:   t.Horario_Inicio,
+			HorarioFim:      t.Horario_Fim,
+			LimiteInscritos: int(t.LimiteInscritos),
+			DiaSemana:       t.Dia_Semana,
+			Sigla:           t.Sigla,
+			Total_alunos:    int(total),
+			Local: dto.LocalResponseDto{
+				Nome:   t.Local.Nome,
+				Campus: t.Local.Campus,
+			},
+			Modalidade: dto.ModalidadeResponseDto{
+				Nome:           t.Modalidade.Nome,
+				ValorAluno:     t.Modalidade.Valor_aluno,
+				ValorProfessor: t.Modalidade.Valor_professor,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"turmas ministradas": turmasMinistradas,
+		"turmas inscritas": turmasInscritas})
 }
 
 func GetUsers(c *gin.Context) {

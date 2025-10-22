@@ -335,7 +335,10 @@ func GetTurmaById(c *gin.Context) {
 	}
 
 	var turma model.Turma
-	if err := repository.DB.Where("turma_id = ?", turmaId).First(&turma).Error; err != nil {
+	if err := repository.DB.
+		Preload("Professor").
+		Where("turma_id = ?", turmaId).
+		First(&turma).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar a turma",
 			"causa": err.Error(),
@@ -355,11 +358,27 @@ func GetTurmaById(c *gin.Context) {
 		return
 	}
 
-	var response TurmaResponse
-	copier.Copy(&response, &turma)
-	response.Local_nome = local.Nome
-	response.Modalidade_nome = modalidade.Nome
-	response.Turma_id = turmaId
+	var response dto.TurmaResponse
+	response.TurmaID = uint(turma.Turma_id)
+	response.HorarioInicio = turma.Horario_Inicio
+	response.HorarioFim = turma.Horario_Fim
+	response.LimiteInscritos = int(turma.LimiteInscritos)
+	response.DiaSemana = turma.Dia_Semana
+	response.Sigla = turma.Sigla
+	response.Local = dto.LocalResponseDto{Nome: local.Nome, Campus: local.Campus}
+	response.Modalidade = dto.ModalidadeResponseDto{Nome: modalidade.Nome, ValorAluno: modalidade.Valor_aluno, ValorProfessor: modalidade.Valor_professor}
+	var total int64
+	repository.DB.Model(&model.Matricula{}).
+		Where("turma_id = ?", turma.Turma_id).
+		Count(&total)
+	response.Total_alunos = int(total)
+
+	professorName := ""
+	if turma.Professor != nil {
+		professorName = turma.Professor.Nome
+	}
+
+	response.Professor = professorName
 
 	c.JSON(http.StatusOK, response)
 }

@@ -11,6 +11,8 @@ type TurmaResponse struct {
 
 	Local      LocalResponseDto      `json:"local"`
 	Modalidade ModalidadeResponseDto `json:"modalidade"`
+
+	Professor string `json:"professor,omitempty"`
 }
 
 type ModalidadeResponseDto struct {
@@ -22,4 +24,8 @@ type ModalidadeResponseDto struct {
 type LocalResponseDto struct {
 	Nome   string `json:"nome"`
 	Campus string `json:"campus"`
+}
+
+type ProfessorNomeDto struct {
+	Nome string `json:"nome"`
 }

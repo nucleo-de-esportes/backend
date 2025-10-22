@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/nucleo-de-esportes/backend/internal/dto"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 	"github.com/nucleo-de-esportes/backend/internal/services"
@@ -374,7 +375,9 @@ func GetTurmaById(c *gin.Context) {
 func GetAllTurmas(c *gin.Context) {
 
 	var turmas []model.Turma
-	if err := repository.DB.Find(&turmas).Error; err != nil {
+	if err := repository.DB.
+		Preload("Professor").
+		Find(&turmas).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar turmas",
 			"causa": err.Error(),
@@ -382,7 +385,7 @@ func GetAllTurmas(c *gin.Context) {
 		return
 	}
 
-	var turmasResponse []TurmaResponse
+	var turmasResponse []dto.TurmaResponse
 
 	for _, turma := range turmas {
 
@@ -396,14 +399,27 @@ func GetAllTurmas(c *gin.Context) {
 			continue
 		}
 
-		convertResponse := TurmaResponse{
-			Turma_id:        turma.Turma_id,
-			Horario_Inicio:  turma.Horario_Inicio,
-			Horario_Fim:     turma.Horario_Fim,
-			LimiteInscritos: turma.LimiteInscritos,
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", turma.Turma_id).
+			Count(&total)
+
+		professorName := ""
+		if turma.Professor != nil {
+			professorName = turma.Professor.Nome
+		}
+
+		convertResponse := dto.TurmaResponse{
+			TurmaID:         uint(turma.Turma_id),
+			HorarioInicio:   turma.Horario_Inicio,
+			HorarioFim:      turma.Horario_Fim,
+			LimiteInscritos: int(turma.LimiteInscritos),
 			Sigla:           turma.Sigla,
-			Local_nome:      local.Nome,
-			Modalidade_nome: modalidade.Nome,
+			Local:           dto.LocalResponseDto{Nome: local.Nome, Campus: local.Campus},
+			Modalidade:      dto.ModalidadeResponseDto{Nome: modalidade.Nome, ValorAluno: modalidade.Valor_aluno, ValorProfessor: modalidade.Valor_professor},
+			DiaSemana:       turma.Dia_Semana,
+			Total_alunos:    int(total),
+			Professor:       professorName,
 		}
 		turmasResponse = append(turmasResponse, convertResponse)
 	}

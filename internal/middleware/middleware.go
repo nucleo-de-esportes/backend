@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 )
@@ -105,7 +104,7 @@ func ValidateTokenAndGetUser(tokenString string) (*model.User, error) {
 		return nil, result.Error
 	}
 
-	if user.User_id == uuid.Nil {
+	if user.User_id.IsNil() {
 		return nil, jwt.ErrTokenInvalidClaims
 	}
 

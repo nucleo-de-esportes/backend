@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     environment:
-      DB_DRIVER: ${DB_DRIVER}
+      DB_DRIVER: "postgres"
       DB_HOST: "db"
       DB_PORT: "5432"
       DB_NAME: ${DB_NAME}

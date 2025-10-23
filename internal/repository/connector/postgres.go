@@ -15,5 +15,7 @@ func (p *PostgresConnector) Connect(cfg config.DatabaseConfig) (*gorm.DB, error)
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Sao_Paulo",
 		cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port,
 	)
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 }

@@ -1,2 +1,7 @@
 main.exe
-dbVariables.env
+*.env
+bin/
+
+#Dependências Node.js (para semantic-release)
+node_modules/
+package-lock.json

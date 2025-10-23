@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 )
@@ -48,7 +49,7 @@ func ConfirmarPresenca(c *gin.Context) {
 		return
 	}
 
-	uid := uuid.MustParse(userID.(string))
+	uid := datatypes.UUID(uuid.MustParse(userID.(string)))
 
 	var presenca model.Presenca
 	if err := repository.DB.

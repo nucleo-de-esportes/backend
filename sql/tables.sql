@@ -1,4 +1,3 @@
--- Criando tabela USUARIO
 CREATE TABLE usuario (
     user_id UUID PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
@@ -12,8 +11,14 @@ CREATE TABLE local (
     nome VARCHAR(100) NOT NULL,
     campus VARCHAR(100) NOT NULL
 );
+CREATE TABLE modalidade (
+    modalidade_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    valor_aluno NUMERIC(10,2) NOT NULL,
+    valor_professor NUMERIC(10,2) NOT NULL,
+    valor_externo NUMERIC(10,2) NOT NULL
+);
 
--- Criando tabela TURMA
 CREATE TABLE turma (
     turma_id SERIAL PRIMARY KEY,
     horario_inicio TEXT NOT NULL,
@@ -27,7 +32,6 @@ CREATE TABLE turma (
     CONSTRAINT fk_modalidade FOREIGN KEY (modalidade_id) REFERENCES modalidade(modalidade_id) ON DELETE CASCADE
 );
 
--- Criando tabela MATRICULA
 CREATE TABLE matricula (
     id SERIAL PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -36,15 +40,6 @@ CREATE TABLE matricula (
     CONSTRAINT fk_usuario FOREIGN KEY (user_id) REFERENCES usuario(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_turma FOREIGN KEY (turma_id) REFERENCES turma(turma_id) ON DELETE CASCADE,
     CONSTRAINT uq_matricula UNIQUE (user_id, turma_id) -- evita matrícula duplicada
-);
-
-
-CREATE TABLE modalidade (
-    modalidade_id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    valor_aluno NUMERIC(10,2) NOT NULL,
-    valor_professor NUMERIC(10,2) NOT NULL,
-    valor_externo NUMERIC(10,2) NOT NULL
 );
 
 ALTER TABLE turma
@@ -81,4 +76,31 @@ CREATE TABLE presenca (
 AJUSTANDO O INCREMENT DOS IDS DAS TURMAS, POIS ESTAVA COMEÇANDO COM TURMA DE ID 0
 **/
 ALTER SEQUENCE turma_turma_id_seq RESTART WITH 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

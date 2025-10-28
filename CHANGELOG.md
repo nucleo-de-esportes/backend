@@ -1,3 +1,21 @@
+## [1.1.0](https://github.com/nucleo-de-esportes/backend/compare/v1.0.3...v1.1.0) (2025-10-23)
+
+
+### Features
+
+* Instancia de aulas criada, modificacao na estrutura de modalidades com dias da semana ([9d19eb0](https://github.com/nucleo-de-esportes/backend/commit/9d19eb0a9ac1260ed825d3228abe07d8438c57ba))
+
+
+### Bug Fixes
+
+* altera pacote de uuid para gorm.io/datatypes visando compatibilidade com gorm ([d2d9377](https://github.com/nucleo-de-esportes/backend/commit/d2d9377666fe16e95c1cfa0e0df8a8cc59016b5c))
+
+
+### Chores
+
+* movido diretório sql para scripts ([bd431bc](https://github.com/nucleo-de-esportes/backend/commit/bd431bc939331a17528d7b8991b7f108653ba48b))
+* remove branch de teste da configuração de release ([7c12943](https://github.com/nucleo-de-esportes/backend/commit/7c12943332e3bf5cf1d7b6096b2635392e0f18c1))
+
 ## [1.0.3](https://github.com/nucleo-de-esportes/backend/compare/v1.0.2...v1.0.3) (2025-10-19)
 
 

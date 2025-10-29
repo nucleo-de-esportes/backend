@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -60,12 +61,12 @@ func RegisterUser(c *gin.Context) {
 
 	}
 
-	if strings.HasSuffix(data.Email, "@sempreceub.com") {
+	if strings.HasSuffix(data.Email, "@sempreceub.com") || strings.HasSuffix(data.Email, "@ceub.edu.br"){
 		data.User_type = model.Aluno
-	} else if strings.HasSuffix(data.Email, "@ceub.edu.br") {
-		data.User_type = model.Professor
+	} else{
+	 	 c.JSON(http.StatusBadRequest, gin.H{"error": "Email não permitido para registro"})
+		 return
 	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -547,4 +548,58 @@ func DeleteUserTurma(c *gin.Context) {
 		"message": "Usuário removido da turma com sucesso!",
 	})
 
+}
+
+type UpdateUserRequest struct {
+	UserType model.UserType `json:"user_type"`
+}
+
+
+func UpdateUser(c *gin.Context){
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem acessar essa função."})
+		return
+	}
+
+	
+	userId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
+		return
+	}
+
+	var user model.User
+
+	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuário",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	var newUserType UpdateUserRequest
+
+	if err := c.ShouldBindJSON(&newUserType); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
+		return
+	}
+
+
+	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType).Error; err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":"Erro ao tentar atualizar informações do usuário",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }

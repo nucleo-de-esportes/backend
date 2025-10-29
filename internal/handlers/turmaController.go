@@ -610,3 +610,120 @@ func GetAlunosByTurmaId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// Structs para o endpoint GET /professor/{id_professor}/aulas
+type AulaProfessorResponse struct {
+	IdAula     uint   `json:"id_aula"`
+	IdTurma    int64  `json:"id_turma"`
+	Modalidade string `json:"modalidade"`
+	Sigla      string `json:"sigla"`
+	Local      string `json:"local"`
+	HoraInicio string `json:"hora_inicio"`
+	HoraFim    string `json:"hora_fim"`
+}
+
+type AulasProfessorResponse struct {
+	Aulas []AulaProfessorResponse `json:"aulas"`
+}
+
+// GetAulasByProfessor retorna as aulas de um professor em uma data específica
+// @Summary Listar aulas de um professor
+// @Description Retorna as aulas do professor no dia especificado (ou dia atual se não informado)
+// @Tags Professor
+// @Accept json
+// @Produce json
+// @Param id path string true "ID do professor (UUID)"
+// @Param dia query string false "Data das aulas (formato: 2006-01-02). Se não informado, retorna aulas do dia atual"
+// @Success 200 {object} AulasProfessorResponse "Lista de aulas do professor"
+// @Failure 400 {object} map[string]interface{} "ID de professor inválido ou data inválida"
+// @Failure 404 {object} map[string]interface{} "Professor não encontrado"
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar aulas"
+// @Security BearerAuth
+// @Router /professor/{id}/aulas [get]
+func GetAulasByProfessor(c *gin.Context) {
+	professorId := c.Param("id")
+	if professorId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID do professor é obrigatório",
+		})
+		return
+	}
+
+	// Validar UUID do professor
+	var professor model.User
+	if err := repository.DB.Where("user_id = ? AND user_type = ?", professorId, model.Professor).First(&professor).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Professor não encontrado",
+		})
+		return
+	}
+
+	// Parse da data (parâmetro opcional "dia")
+	diaParam := c.Query("dia")
+	dataInicio, dataFim, err := services.ParseDateParam(diaParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Formato de data inválido. Use 2006-01-02 ou timestamp Unix",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	// Buscar turmas do professor
+	var turmas []model.Turma
+	if err := repository.DB.Where("professor_id = ?", professorId).Find(&turmas).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar turmas do professor",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	// Extrair IDs das turmas
+	turmaIds := make([]int64, len(turmas))
+	for i, turma := range turmas {
+		turmaIds[i] = turma.Turma_id
+	}
+
+	// Se não tem turmas, retornar array vazio
+	if len(turmaIds) == 0 {
+		c.JSON(http.StatusOK, AulasProfessorResponse{Aulas: []AulaProfessorResponse{}})
+		return
+	}
+
+	// Buscar aulas do professor na data especificada
+	var aulas []model.Aula
+	if err := repository.DB.
+		Preload("Turma.Modalidade").
+		Preload("Turma.Local").
+		Where("turma_id IN ? AND data_hora >= ? AND data_hora < ?", turmaIds, dataInicio, dataFim).
+		Order("data_hora ASC").
+		Find(&aulas).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar aulas",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	// Montar resposta
+	aulasResponse := make([]AulaProfessorResponse, 0, len(aulas))
+	for _, aula := range aulas {
+		aulaResp := AulaProfessorResponse{
+			IdAula:     aula.ID,
+			IdTurma:    aula.TurmaID,
+			Modalidade: aula.Turma.Modalidade.Nome,
+			Sigla:      aula.Turma.Sigla,
+			Local:      aula.Turma.Local.Nome,
+			HoraInicio: aula.DataHora.Format("15:04"),
+			HoraFim:    aula.DataHoraFim.Format("15:04"),
+		}
+		aulasResponse = append(aulasResponse, aulaResp)
+	}
+
+	response := AulasProfessorResponse{
+		Aulas: aulasResponse,
+	}
+
+	c.JSON(http.StatusOK, response)
+}

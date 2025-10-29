@@ -13,11 +13,22 @@
 - **Estrutura das pastas** seguindo os padrões encontrados aqui →  
   https://github.com/golang-standards/project-layout
 
-  /internal
-   /handlers     → controllers
-   /services     → regras de negócio
-   /repository   → acesso ao banco
-   /model        → structs e entidades
+  ├── cmd/
+│ └── nucleo_esportes/
+│ └── main.go # Ponto de entrada da aplicação (inicializa servidor)
+│
+├── docs/ # Documentação 
+│
+├── internal/ # Código interno da aplicação 
+│ ├── config/ # Configurações gerais e inicialização 
+│ ├── handlers/ # Recebem as requisições HTTP
+│ ├── middleware/ # Middlewares (autenticação, CORS, etc.)
+│ ├── model/ # Modelos, entidades 
+│ ├── repository/ # Acesso ao banco de dados 
+│ └── services/ # Regras de negócio 
+│
+└── scripts/
+└── scripts.sql # Script SQL para estrutura do banco
 
 
 - **Documentação dos endpoints** →  

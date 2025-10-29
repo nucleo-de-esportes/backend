@@ -1,10 +1,21 @@
 
 # Núcleo de Esportes (Backend)
 
-## Tecnologias
+# 📄 Documentação
 
--   [GoLang](https://go.dev/doc/tutorial/getting-started)
--   [Supabase](https://supabase.com/dashboard/projects)
+## 🚀 Tecnologias usadas
+
+- **Golang** com framework **GIN** para controle dos endpoints
+- **Pacote golang-jwt** para autenticação de usuários com token jwt e controle de roles(Admin, Professor, Aluno)  
+  - token armazenado nos cookies
+- **Banco de dados postgreSQL**
+- **GORM** para manipulação do banco de dados com mais facilidade
+- **Aplicação divida em arquitetura em camadas**
+- **Estrutura das pastas** seguindo os padrões encontrados aqui →  
+  https://github.com/golang-standards/project-layout
+- **Documentação dos endpoints** →  
+  https://nucleo-de-esportes.github.io/backend/swagger/index.html
+
 
 ------------------------------------------------------------------------
 

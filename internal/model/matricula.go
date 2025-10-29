@@ -12,8 +12,8 @@ type Matricula struct {
 	Turma_id   int64          `json:"turma_id" gorm:"not null"`
 	Created_At time.Time      `json:"created_at" gorm:"autoCreateTime"`
 
-	User  User  `json:"-" gorm:"foreignKey:User_id"`
-	Turma Turma `json:"turma" gorm:"foreignKey:Turma_id"`
+	User  User  `json:"-" gorm:"foreignKey:User_id;references:User_id"`
+	Turma Turma `json:"turma" gorm:"foreignKey:Turma_id;references:Turma_id"`
 }
 
 func (Matricula) TableName() string {

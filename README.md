@@ -73,19 +73,23 @@ DB_PASSWORD=senha_segura
 
 # Configuração do Servidor
 SERVER_PORT="8080"
+
+# Autenticação JWT
+SECRET_KEY=sua-chave-secreta-aqui
 ```
 
 ### Descrição das variáveis
 
-| Variável        | Obrigatória | Padrão      | Descrição                                           |
-| --------------- | ----------- | ----------- | --------------------------------------------------- |
-| **DB_DRIVER**   | ✅ Sim       | —           | Define o driver do banco de dados (ex: `postgres`). |
-| **DB_HOST**     | ❌ Não       | `localhost` | Endereço do host do banco de dados.                 |
-| **DB_PORT**     | ❌ Não       | `5432`      | Porta de conexão com o banco de dados.              |
-| **DB_NAME**     | ✅ Sim       | —           | Nome do banco de dados.                             |
-| **DB_USER**     | ❌ Não       | `postgres`  | Usuário do banco de dados.                          |
-| **DB_PASSWORD** | ✅ Sim       | —           | Senha do banco de dados.                            |
-| **SERVER_PORT** | ❌ Não       | `8000`      | Porta em que o servidor irá escutar as requisições. |
+| Variável        | Obrigatória  | Padrão      | Descrição                                                                        |
+| --------------- | ------------ | ----------- | -------------------------------------------------------------------------------- |
+| **DB_DRIVER**   | ✅ Sim       | —           | Define o driver do banco de dados (ex: `postgres`).                              |
+| **DB_HOST**     | ❌ Não       | `localhost` | Endereço do host do banco de dados.                                              |
+| **DB_PORT**     | ❌ Não       | `5432`      | Porta de conexão com o banco de dados.                                           |
+| **DB_NAME**     | ✅ Sim       | —           | Nome do banco de dados.                                                          |
+| **DB_USER**     | ❌ Não       | `postgres`  | Usuário do banco de dados.                                                       |
+| **DB_PASSWORD** | ✅ Sim       | —           | Senha do banco de dados.                                                         |
+| **SERVER_PORT** | ❌ Não       | `8000`      | Porta em que o servidor irá escutar as requisições.                              |
+| **SECRET_KEY**  | ✅ Sim       | —           | Chave secreta para assinatura e validação de tokens JWT. Use uma string segura.  |
 
 
 > ⚠️ Caso alguma variável obrigatória não seja definida, a aplicação

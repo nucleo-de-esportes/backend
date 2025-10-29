@@ -79,6 +79,8 @@ func main() {
 
 	turmaRoutes.PUT("/:id", handlers.UpdateTurma)
 
+	turmaRoutes.GET("/:id/alunos", middleware.AuthUser, handlers.GetAlunosByTurmaId)
+
 	// Rotas de usuário - temporariamente comentadas para testes
 	userRoutes := router.Group("/user")
 	userRoutes.POST("/register", handlers.RegisterUser)

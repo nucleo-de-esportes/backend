@@ -42,6 +42,26 @@ type NomeResponse struct {
 	Nome string `json:"nome"`
 }
 
+// Response structures for GetAlunosByTurmaId endpoint
+type TurmaComAlunosResponse struct {
+	Turma  TurmaInfoResponse   `json:"turma"`
+	Alunos []AlunoInfoResponse `json:"alunos"`
+}
+
+type TurmaInfoResponse struct {
+	IdTurma    int64  `json:"id_turma"`
+	Modalidade string `json:"modalidade"`
+	Sigla      string `json:"sigla"`
+	QtdAulas   int64  `json:"qtd_aulas"`
+}
+
+type AlunoInfoResponse struct {
+	IdAluno   string `json:"id_aluno"`
+	Nome      string `json:"nome"`
+	Email     string `json:"email"`
+	Presencas int64  `json:"presencas"`
+}
+
 func ConvertToTurmaResponse(turma Turma, localNome string, modalidadeNome string) TurmaResponse {
 	var response TurmaResponse
 
@@ -496,4 +516,97 @@ func GetNextClassById(c *gin.Context) {
 
 	c.JSON(200, aula)
 
+}
+
+// GetAlunosByTurmaId godoc
+// @Summary Retorna informações de uma turma e seus alunos
+// @Description Retorna dados completos da turma e lista de alunos matriculados com suas presenças
+// @Tags Turmas
+// @Accept json
+// @Produce json
+// @Param id path int true "ID da Turma"
+// @Success 200 {object} TurmaComAlunosResponse "Turma com lista de alunos"
+// @Failure 400 {object} map[string]interface{} "ID de turma inválido"
+// @Failure 404 {object} map[string]interface{} "Turma não encontrada"
+// @Failure 500 {object} map[string]interface{} "Erro ao buscar dados"
+// @Security BearerAuth
+// @Router /turma/{id}/alunos [get]
+func GetAlunosByTurmaId(c *gin.Context) {
+	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID de turma inválido",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	// Buscar turma com modalidade e matrículas
+	var turma model.Turma
+	if err := repository.DB.
+		Preload("Modalidade").
+		Preload("Matriculas.User").
+		Where("turma_id = ?", turmaId).
+		First(&turma).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Turma não encontrada",
+		})
+		return
+	}
+
+	// Contar total de aulas realizadas (que já aconteceram)
+	var qtdAulas int64
+	if err := repository.DB.Model(&model.Aula{}).
+		Where("turma_id = ? AND data_hora < NOW()", turmaId).
+		Count(&qtdAulas).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao contar aulas",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	// Montar informações da turma
+	turmaInfo := TurmaInfoResponse{
+		IdTurma:    turma.Turma_id,
+		Modalidade: turma.Modalidade.Nome,
+		Sigla:      turma.Sigla,
+		QtdAulas:   qtdAulas,
+	}
+
+	// Processar alunos e suas presenças
+	alunos := make([]AlunoInfoResponse, 0, len(turma.Matriculas))
+
+	for _, matricula := range turma.Matriculas {
+		// Contar presenças do aluno nesta turma (apenas presente=true e aulas realizadas)
+		var presencas int64
+		if err := repository.DB.
+			Table("presencas").
+			Joins("INNER JOIN aula ON presencas.aula_id = aula.id").
+			Where("aula.turma_id = ? AND presencas.user_id = ? AND presencas.presente = true AND aula.data_hora < NOW()",
+				turmaId, matricula.User_id).
+			Count(&presencas).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Erro ao contar presenças",
+				"causa": err.Error(),
+			})
+			return
+		}
+
+		aluno := AlunoInfoResponse{
+			IdAluno:   matricula.User.User_id.String(),
+			Nome:      matricula.User.Nome,
+			Email:     matricula.User.Email,
+			Presencas: presencas,
+		}
+		alunos = append(alunos, aluno)
+	}
+
+	// Montar resposta final
+	response := TurmaComAlunosResponse{
+		Turma:  turmaInfo,
+		Alunos: alunos,
+	}
+
+	c.JSON(http.StatusOK, response)
 }

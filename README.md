@@ -14,7 +14,8 @@
   https://github.com/golang-standards/project-layout
 
   ## 🗂 Estrutura de Pastas do Projeto
-  ├── cmd/
+```
+├── cmd/
 │ └── nucleo_esportes/
 │ └── main.go # Ponto de entrada da aplicação (inicializa servidor)
 │
@@ -30,7 +31,7 @@
 │
 └── scripts/
 └── scripts.sql # Script SQL para estrutura do banco
-
+```
 
 - **Documentação dos endpoints** →  
   https://nucleo-de-esportes.github.io/backend/swagger/index.html

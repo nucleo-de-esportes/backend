@@ -1,3 +1,20 @@
+## [1.3.0](https://github.com/nucleo-de-esportes/backend/compare/v1.2.0...v1.3.0) (2025-10-29)
+
+
+### Features
+
+* implementado endpoint GET /professor/{id_professor}/aulas ([dac2a0f](https://github.com/nucleo-de-esportes/backend/commit/dac2a0fa6ff2a004b0f49fb49bc5e6da32edc860))
+
+
+### CI/CD
+
+* ajustado path do arquivo main.go no workflow de deploy do swagger ([58f34b9](https://github.com/nucleo-de-esportes/backend/commit/58f34b980a2f762586f2735ab98ace740dcf325c))
+
+
+### Chores
+
+* ajuste de timezone dos serviços no docker compose ([6efae81](https://github.com/nucleo-de-esportes/backend/commit/6efae81d2806e537445e8ea0d42093f843c1f324))
+
 ## [1.2.0](https://github.com/nucleo-de-esportes/backend/compare/v1.1.0...v1.2.0) (2025-10-29)
 
 

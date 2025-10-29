@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"strconv"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -569,12 +569,9 @@ func UpdateUser(c *gin.Context){
 	}
 
 	
-	userId, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Turma não encontrada"})
-		return
-	}
-
+	userId := c.Param("id")
+	
+	var userResponse UserResponse
 	var user model.User
 
 	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
@@ -593,13 +590,19 @@ func UpdateUser(c *gin.Context){
 	}
 
 
-	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType).Error; err != nil{
+	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType.UserType).Error; err != nil{
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":"Erro ao tentar atualizar informações do usuário",
 			"details": err.Error(),
 		})
 		return
 	}
+	userResponse.User_type = user.User_type
+	userResponse.User_id = user.User_id
+	userResponse.Email = user.Email
+	userResponse.Nome = user.Nome
+	userResponse.Matriculas = user.Matriculas
+	userResponse.TurmasProfessor = user.TurmasProfessor
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, userResponse)
 }

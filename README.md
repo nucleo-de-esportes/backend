@@ -3,7 +3,6 @@
 
 # 📄 Documentação
 
-## 🚀 Tecnologias usadas
 
 - **Golang** com framework **GIN** para controle dos endpoints
 - **Pacote golang-jwt** para autenticação de usuários com token jwt e controle de roles(Admin, Professor, Aluno)  

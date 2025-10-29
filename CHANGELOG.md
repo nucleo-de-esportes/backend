@@ -1,3 +1,20 @@
+## [1.2.0](https://github.com/nucleo-de-esportes/backend/compare/v1.1.0...v1.2.0) (2025-10-29)
+
+
+### Features
+
+* implementado endpoint GET /turma/{id_turma}/alunos ([8fb40d4](https://github.com/nucleo-de-esportes/backend/commit/8fb40d4e0f1e6365a13f693c5b22667f15d3d868))
+
+
+### Bug Fixes
+
+* corrigido conversão de uuid durante criação do jwt e adicionado variável SECRET_KEY ao docker-compose.yml ([adcba38](https://github.com/nucleo-de-esportes/backend/commit/adcba38651fbcaa877c5bdf76fcdf93cfecabf33))
+
+
+### Chores
+
+* atualizado documentação das variáveis de ambiente do README.md ([4e23c1b](https://github.com/nucleo-de-esportes/backend/commit/4e23c1bd7dad550a4b146541db5b054f6aa8d245))
+
 ## [1.1.0](https://github.com/nucleo-de-esportes/backend/compare/v1.0.3...v1.1.0) (2025-10-23)
 
 

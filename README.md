@@ -13,6 +13,7 @@
 - **Estrutura das pastas** seguindo os padrões encontrados aqui →  
   https://github.com/golang-standards/project-layout
 
+  ## 🗂 Estrutura de Pastas do Projeto
   ├── cmd/
 │ └── nucleo_esportes/
 │ └── main.go # Ponto de entrada da aplicação (inicializa servidor)
@@ -33,6 +34,10 @@
 
 - **Documentação dos endpoints** →  
   https://nucleo-de-esportes.github.io/backend/swagger/index.html
+
+
+
+  
 
 
 ------------------------------------------------------------------------

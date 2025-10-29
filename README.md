@@ -12,6 +12,14 @@
 - **Aplicação divida em arquitetura em camadas**
 - **Estrutura das pastas** seguindo os padrões encontrados aqui →  
   https://github.com/golang-standards/project-layout
+
+  /internal
+   /handlers     → controllers
+   /services     → regras de negócio
+   /repository   → acesso ao banco
+   /model        → structs e entidades
+
+
 - **Documentação dos endpoints** →  
   https://nucleo-de-esportes.github.io/backend/swagger/index.html
 

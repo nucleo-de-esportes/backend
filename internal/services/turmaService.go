@@ -67,3 +67,35 @@ func ValidarHorarioNadoLivre(inicio, fim string) bool {
 		!fimTime.After(limiteFim) &&
 		inicioTime.Before(fimTime)
 }
+
+// ParseDateParam converte um parâmetro de data (formato "2006-01-02" ou timestamp Unix)
+// para um intervalo de data (início e fim do dia)
+func ParseDateParam(diaParam string) (dataInicio, dataFim time.Time, err error) {
+	now := time.Now()
+
+	// Se não foi fornecido parâmetro, usar dia atual
+	if diaParam == "" {
+		dataInicio = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		dataFim = dataInicio.Add(24 * time.Hour)
+		return dataInicio, dataFim, nil
+	}
+
+	// Tentar parse como data no formato "2006-01-02"
+	parsedTime, err := time.Parse("2006-01-02", diaParam)
+	if err == nil {
+		dataInicio = time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, parsedTime.Location())
+		dataFim = dataInicio.Add(24 * time.Hour)
+		return dataInicio, dataFim, nil
+	}
+
+	// Tentar parse como timestamp Unix
+	timestamp, errInt := strconv.ParseInt(diaParam, 10, 64)
+	if errInt != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	parsedTime = time.Unix(timestamp, 0)
+	dataInicio = time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(), 0, 0, 0, 0, parsedTime.Location())
+	dataFim = dataInicio.Add(24 * time.Hour)
+	return dataInicio, dataFim, nil
+}

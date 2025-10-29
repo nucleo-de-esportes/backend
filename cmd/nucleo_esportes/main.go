@@ -94,5 +94,9 @@ func main() {
 
 	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 
+	// Rotas de professor
+	professorRoutes := router.Group("/professor")
+	professorRoutes.GET("/:id/aulas", middleware.AuthUser, handlers.GetAulasByProfessor)
+
 	router.Run(":" + cfg.Server.Port)
 }

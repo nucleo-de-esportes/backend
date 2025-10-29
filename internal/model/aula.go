@@ -11,7 +11,7 @@ type Aula struct {
 	DataHoraFim time.Time `gorm:"not null" json:"data_hora_fim"`
 	CriadoEm    time.Time `gorm:"autoCreateTime" json:"criado_em"`
 
-	Turma     Turma      `gorm:"foreignKey:Turma_id;constraint:OnDelete:CASCADE" json:"turma"`
+	Turma     Turma      `gorm:"foreignKey:TurmaID;references:Turma_id;constraint:OnDelete:CASCADE" json:"turma"`
 	Presencas []Presenca `json:"presencas"`
 }
 

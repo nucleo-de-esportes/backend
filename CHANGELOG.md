@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/nucleo-de-esportes/backend/compare/v1.3.0...v1.3.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* ajustando token de usuario ([d8e7f29](https://github.com/nucleo-de-esportes/backend/commit/d8e7f295cf1709bba69a48dda83c9e4378083ded))
+
 ## [1.3.0](https://github.com/nucleo-de-esportes/backend/compare/v1.2.0...v1.3.0) (2025-10-29)
 
 

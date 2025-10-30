@@ -116,6 +116,8 @@ type LoginResponse struct {
 	Nome      string         `json:"nome"`
 	User_type model.UserType `json:"user_type"`
 	Message   string         `json:"message"`
+	Token	  string 		 `json:"token"`
+
 }
 
 // LoginUser godoc
@@ -184,6 +186,8 @@ func LoginUser(c *gin.Context) {
 		Nome:      user.Nome,
 		User_type: user.User_type,
 		Message:   "Login realizado com sucesso!",
+		Token: tokenString,
+
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)

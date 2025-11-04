@@ -1,3 +1,17 @@
+## [1.4.0](https://github.com/nucleo-de-esportes/backend/compare/v1.3.1...v1.4.0) (2025-11-04)
+
+
+### Features
+
+* UpdateUser implementada para admin alterar user_type ([b0dfcc1](https://github.com/nucleo-de-esportes/backend/commit/b0dfcc164dd50bb47d2a5f8dfa215b1d6ef29df6))
+
+
+### Bug Fixes
+
+* fixing getTurmasByUser response ([8023704](https://github.com/nucleo-de-esportes/backend/commit/8023704454196b6a8be225d1c99d9174e1432416))
+* fixing more json structures response ([bdc4b08](https://github.com/nucleo-de-esportes/backend/commit/bdc4b08169d3cb0b8b98c44e78d104dbea11b0b3))
+* fixing responses structure ([91d18d1](https://github.com/nucleo-de-esportes/backend/commit/91d18d189b7533ce4ff9a2fd43d3faafab35398d))
+
 ## [1.3.1](https://github.com/nucleo-de-esportes/backend/compare/v1.3.0...v1.3.1) (2025-10-30)
 
 

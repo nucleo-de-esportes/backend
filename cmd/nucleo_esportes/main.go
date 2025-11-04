@@ -1,12 +1,15 @@
 package main
 
 import (
-	"os"
+	"flag"
+	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/nucleo-de-esportes/backend/docs"
+	"github.com/nucleo-de-esportes/backend/internal/config"
 	"github.com/nucleo-de-esportes/backend/internal/handlers"
 	"github.com/nucleo-de-esportes/backend/internal/middleware"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
@@ -25,8 +28,22 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and a JWT token.
 func main() {
+	// Flag para carregar .env
 
-	repository.Init()
+	vars := flag.String("vars", "file", "Define origem das variáveis de ambiente: 'file' (.env) ou 'exported' (sistema).")
+	flag.Parse()
+
+	// Se vars igual a "file", carrega o .env
+	if *vars == "file" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
+
+	// Carregar configurações
+	cfg := config.LoadConfig()
+
+	repository.Init(cfg.DB)
 
 	router := gin.Default()
 
@@ -62,6 +79,8 @@ func main() {
 
 	turmaRoutes.PUT("/:id", handlers.UpdateTurma)
 
+	turmaRoutes.GET("/:id/alunos", middleware.AuthUser, handlers.GetAlunosByTurmaId)
+
 	// Rotas de usuário - temporariamente comentadas para testes
 	userRoutes := router.Group("/user")
 	userRoutes.POST("/register", handlers.RegisterUser)
@@ -77,10 +96,9 @@ func main() {
 
 	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
-	}
+	// Rotas de professor
+	professorRoutes := router.Group("/professor")
+	professorRoutes.GET("/:id/aulas", middleware.AuthUser, handlers.GetAulasByProfessor)
 
-	router.Run(port)
+	router.Run(":" + cfg.Server.Port)
 }

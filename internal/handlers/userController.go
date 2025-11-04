@@ -12,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/nucleo-de-esportes/backend/internal/dto"
@@ -29,7 +30,7 @@ type RegisterRequest struct {
 
 type RegisterResponse struct {
 	Email     string         `json:"email"`
-	User_id   uuid.UUID      `json:"user_id"`
+	User_id   string         `json:"user_id"`
 	User_type model.UserType `json:"user_type"`
 	Nome      string         `json:"nome"`
 }
@@ -76,7 +77,7 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	newUser := model.User{
-		User_id:   uuid.New(),
+		User_id:   datatypes.UUID(uuid.New()),
 		User_type: data.User_type,
 		Email:     data.Email,
 		Nome:      data.Nome,
@@ -94,7 +95,7 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	userResponse := RegisterResponse{
-		User_id:   newUser.User_id,
+		User_id:   newUser.User_id.String(),
 		Email:     data.Email,
 		User_type: data.User_type,
 		Nome:      data.Nome,
@@ -113,11 +114,13 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	User_id   uuid.UUID      `json:"user_id"`
+	User_id   string         `json:"user_id"`
 	Email     string         `json:"email"`
 	Nome      string         `json:"nome"`
 	User_type model.UserType `json:"user_type"`
 	Message   string         `json:"message"`
+	Token	  string 		 `json:"token"`
+
 }
 
 // LoginUser godoc
@@ -165,7 +168,7 @@ func LoginUser(c *gin.Context) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"subject":   user.User_id,
+		"subject":   user.User_id.String(),
 		"exp":       time.Now().Add(2 * time.Hour).Unix(),
 		"user_type": user.User_type,
 	})
@@ -181,11 +184,13 @@ func LoginUser(c *gin.Context) {
 	}
 
 	response := LoginResponse{
-		User_id:   user.User_id,
+		User_id:   user.User_id.String(),
 		Email:     user.Email,
 		Nome:      user.Nome,
 		User_type: user.User_type,
 		Message:   "Login realizado com sucesso!",
+		Token: tokenString,
+
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
@@ -238,7 +243,7 @@ func InscreverAluno(c *gin.Context) {
 	}
 
 	inscricao := model.Matricula{
-		User_id:    uuid.MustParse(userID.(string)),
+		User_id:    datatypes.UUID(uuid.MustParse(userID.(string))),
 		Turma_id:   request.TurmaID,
 		Created_At: time.Now(),
 	}
@@ -288,7 +293,7 @@ type TurmaResponseUser struct {
 }
 
 type UserResponse struct {
-	User_id   uuid.UUID      `json:"user_id"`
+	User_id   string         `json:"user_id"`
 	User_type model.UserType `json:"user_type"`
 	Email     string         `json:"email"`
 	Nome      string         `json:"nome"`
@@ -406,7 +411,7 @@ func GetUsers(c *gin.Context) {
 
 	for _, user := range users {
 		userResp := UserResponse{
-			User_id:         user.User_id,
+			User_id:         user.User_id.String(),
 			User_type:       user.User_type,
 			Email:           user.Email,
 			Nome:            user.Nome,
@@ -449,7 +454,7 @@ func GetUserById(c *gin.Context) {
 	}
 
 	userResp := UserResponse{
-		User_id:         user.User_id,
+		User_id:         user.User_id.String(),
 		User_type:       user.User_type,
 		Email:           user.Email,
 		Nome:            user.Nome,

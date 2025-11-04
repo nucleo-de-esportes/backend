@@ -2,8 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 # Instalar dependências necessárias
-RUN apk --no-cache add git
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add git ca-certificates tzdata
 
 RUN update-ca-certificates
 
@@ -24,7 +23,7 @@ RUN mkdir -p /app/bin
 FROM builder AS build
 
 # Compilar a aplicação Go para um binário pequeno e otimizado
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o /app/bin/api ./main
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o /app/bin/api ./cmd/nucleo_esportes/
 
 # Fase 3: Imagem final
 FROM scratch AS final
@@ -32,6 +31,7 @@ FROM scratch AS final
 # Copiar o binário da fase de build
 COPY --from=build /app/bin/api /app/api
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 
 # Configurar permissões e diretório de trabalho
 WORKDIR /app

@@ -91,6 +91,8 @@ func main() {
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
 	userRoutes.DELETE("/:user_id/turma/:turma_id", middleware.AuthUser, handlers.DeleteUserTurma)
 	userRoutes.DELETE(("/delete/:id"), middleware.AuthUser, handlers.DeleteUserById)
+	userRoutes.PUT("/turma/adicionar/professor", handlers.AtribuirProfessor)
+	userRoutes.PUT("/:id", middleware.AuthUser, handlers.UpdateUser)
 
 	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 

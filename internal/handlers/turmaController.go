@@ -3,11 +3,13 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/nucleo-de-esportes/backend/internal/dto"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 	"github.com/nucleo-de-esportes/backend/internal/services"
@@ -242,6 +244,7 @@ func CreateTurma(c *gin.Context) {
 		Sigla:           newTurma.Sigla,
 		Local_Id:        newTurma.Local_Id,
 		Modalidade_Id:   newTurma.Modalidade_Id,
+		Dia_Semana:      strings.Join(config.DiasSemana, ","),
 	}
 
 	if err := tx.Create(&turmaModel).Error; err != nil {
@@ -352,7 +355,10 @@ func GetTurmaById(c *gin.Context) {
 	}
 
 	var turma model.Turma
-	if err := repository.DB.Where("turma_id = ?", turmaId).First(&turma).Error; err != nil {
+	if err := repository.DB.
+		Preload("Professor").
+		Where("turma_id = ?", turmaId).
+		First(&turma).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar a turma",
 			"causa": err.Error(),
@@ -372,11 +378,27 @@ func GetTurmaById(c *gin.Context) {
 		return
 	}
 
-	var response TurmaResponse
-	copier.Copy(&response, &turma)
-	response.Local_nome = local.Nome
-	response.Modalidade_nome = modalidade.Nome
-	response.Turma_id = turmaId
+	var response dto.TurmaResponse
+	response.TurmaID = uint(turma.Turma_id)
+	response.HorarioInicio = turma.Horario_Inicio
+	response.HorarioFim = turma.Horario_Fim
+	response.LimiteInscritos = int(turma.LimiteInscritos)
+	response.DiaSemana = turma.Dia_Semana
+	response.Sigla = turma.Sigla
+	response.Local = dto.LocalResponseDto{Nome: local.Nome, Campus: local.Campus}
+	response.Modalidade = dto.ModalidadeResponseDto{Nome: modalidade.Nome, ValorAluno: modalidade.Valor_aluno, ValorProfessor: modalidade.Valor_professor}
+	var total int64
+	repository.DB.Model(&model.Matricula{}).
+		Where("turma_id = ?", turma.Turma_id).
+		Count(&total)
+	response.Total_alunos = int(total)
+
+	professorName := ""
+	if turma.Professor != nil {
+		professorName = turma.Professor.Nome
+	}
+
+	response.Professor = professorName
 
 	c.JSON(http.StatusOK, response)
 }
@@ -392,7 +414,9 @@ func GetTurmaById(c *gin.Context) {
 func GetAllTurmas(c *gin.Context) {
 
 	var turmas []model.Turma
-	if err := repository.DB.Find(&turmas).Error; err != nil {
+	if err := repository.DB.
+		Preload("Professor").
+		Find(&turmas).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar turmas",
 			"causa": err.Error(),
@@ -400,7 +424,7 @@ func GetAllTurmas(c *gin.Context) {
 		return
 	}
 
-	var turmasResponse []TurmaResponse
+	var turmasResponse []dto.TurmaResponse
 
 	for _, turma := range turmas {
 
@@ -414,14 +438,27 @@ func GetAllTurmas(c *gin.Context) {
 			continue
 		}
 
-		convertResponse := TurmaResponse{
-			Turma_id:        turma.Turma_id,
-			Horario_Inicio:  turma.Horario_Inicio,
-			Horario_Fim:     turma.Horario_Fim,
-			LimiteInscritos: turma.LimiteInscritos,
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", turma.Turma_id).
+			Count(&total)
+
+		professorName := ""
+		if turma.Professor != nil {
+			professorName = turma.Professor.Nome
+		}
+
+		convertResponse := dto.TurmaResponse{
+			TurmaID:         uint(turma.Turma_id),
+			HorarioInicio:   turma.Horario_Inicio,
+			HorarioFim:      turma.Horario_Fim,
+			LimiteInscritos: int(turma.LimiteInscritos),
 			Sigla:           turma.Sigla,
-			Local_nome:      local.Nome,
-			Modalidade_nome: modalidade.Nome,
+			Local:           dto.LocalResponseDto{Nome: local.Nome, Campus: local.Campus},
+			Modalidade:      dto.ModalidadeResponseDto{Nome: modalidade.Nome, ValorAluno: modalidade.Valor_aluno, ValorProfessor: modalidade.Valor_professor},
+			DiaSemana:       turma.Dia_Semana,
+			Total_alunos:    int(total),
+			Professor:       professorName,
 		}
 		turmasResponse = append(turmasResponse, convertResponse)
 	}

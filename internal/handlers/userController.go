@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -14,6 +15,7 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
+	"github.com/nucleo-de-esportes/backend/internal/dto"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
 	"github.com/nucleo-de-esportes/backend/internal/services"
@@ -44,6 +46,7 @@ type RegisterResponse struct {
 // @Failure 400 {object} map[string]interface{} "Credenciais incorretas ou tipo de usuário inválido"
 // @Failure 500 {object} map[string]interface{} "Erro ao tentar cadastrar usuario"
 // @Router /user/register [post]
+
 func RegisterUser(c *gin.Context) {
 
 	var data RegisterRequest
@@ -59,12 +62,12 @@ func RegisterUser(c *gin.Context) {
 
 	}
 
-	if strings.HasSuffix(data.Email, "@sempreceub.com") {
+	if strings.HasSuffix(data.Email, "@sempreceub.com") || strings.HasSuffix(data.Email, "@ceub.edu.br"){
 		data.User_type = model.Aluno
-	} else if strings.HasSuffix(data.Email, "@ceub.edu.br") {
-		data.User_type = model.Professor
+	} else{
+	 	 c.JSON(http.StatusBadRequest, gin.H{"error": "Email não permitido para registro"})
+		 return
 	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -253,6 +256,27 @@ func InscreverAluno(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição realizada com sucesso!"})
 }
 
+func AtribuirProfessor(c *gin.Context) {
+	var input struct {
+		Turma_id     int64     `json:"turma_id"`
+		Professor_id uuid.UUID `json:"professor_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	if err := repository.DB.Model(&model.Turma{}).
+		Where("turma_id = ?", input.Turma_id).
+		Update("professor_id", input.Professor_id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar turma"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Professor atribuído à turma com sucesso"})
+}
+
 type InscricaoComTurma struct {
 	Turma TurmaResponseUser `json:"turma"`
 }
@@ -295,25 +319,92 @@ func GetTurmasByUser(c *gin.Context) {
 		return
 	}
 
-	turmas := make([]model.Turma, len(matriculas))
-	for i, m := range matriculas {
-		turmas[i] = m.Turma
+	var turmasInscritas []dto.TurmaResponse
+	var turmasMinistradas []dto.TurmaResponse
+
+	for _, m := range matriculas {
+		t := m.Turma
+
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", t.Turma_id).
+			Count(&total)
+
+		turmasInscritas = append(turmasInscritas, dto.TurmaResponse{
+			TurmaID:         uint(t.Turma_id),
+			HorarioInicio:   t.Horario_Inicio,
+			HorarioFim:      t.Horario_Fim,
+			LimiteInscritos: int(t.LimiteInscritos),
+			DiaSemana:       t.Dia_Semana,
+			Sigla:           t.Sigla,
+			Total_alunos:    int(total),
+			Local: dto.LocalResponseDto{
+				Nome:   t.Local.Nome,
+				Campus: t.Local.Campus,
+			},
+			Modalidade: dto.ModalidadeResponseDto{
+				Nome:           t.Modalidade.Nome,
+				ValorAluno:     t.Modalidade.Valor_aluno,
+				ValorProfessor: t.Modalidade.Valor_professor,
+			},
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"turmas": turmas})
+	var turmasProfessor []model.Turma
+	if err := repository.DB.
+		Preload("Local").
+		Preload("Modalidade").
+		Where("professor_id = ?", userId).
+		Find(&turmasProfessor).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar turmas (professor)", "detalhe": err.Error()})
+		return
+	}
+
+	for _, t := range turmasProfessor {
+		var total int64
+		repository.DB.Model(&model.Matricula{}).
+			Where("turma_id = ?", t.Turma_id).
+			Count(&total)
+
+		turmasMinistradas = append(turmasMinistradas, dto.TurmaResponse{
+			TurmaID:         uint(t.Turma_id),
+			HorarioInicio:   t.Horario_Inicio,
+			HorarioFim:      t.Horario_Fim,
+			LimiteInscritos: int(t.LimiteInscritos),
+			DiaSemana:       t.Dia_Semana,
+			Sigla:           t.Sigla,
+			Total_alunos:    int(total),
+			Local: dto.LocalResponseDto{
+				Nome:   t.Local.Nome,
+				Campus: t.Local.Campus,
+			},
+			Modalidade: dto.ModalidadeResponseDto{
+				Nome:           t.Modalidade.Nome,
+				ValorAluno:     t.Modalidade.Valor_aluno,
+				ValorProfessor: t.Modalidade.Valor_professor,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"turmas ministradas": turmasMinistradas,
+		"turmas inscritas": turmasInscritas})
 }
 
 func GetUsers(c *gin.Context) {
 
 	var users []model.User
 
-	if err := repository.DB.Preload("Matriculas").Preload("TurmasProfessor").Find(&users).Error; err != nil {
+	if err := repository.DB.
+		Preload("Matriculas.Turma.Local").
+		Preload("Matriculas.Turma.Modalidade").
+		Preload("TurmasProfessor.Local").
+		Preload("TurmasProfessor.Modalidade").
+		Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Erro ao buscar usuários",
 			"causa": err.Error(),
 		})
 		return
-
 	}
 
 	var result []UserResponse
@@ -462,4 +553,61 @@ func DeleteUserTurma(c *gin.Context) {
 		"message": "Usuário removido da turma com sucesso!",
 	})
 
+}
+
+type UpdateUserRequest struct {
+	UserType model.UserType `json:"user_type"`
+}
+
+
+func UpdateUser(c *gin.Context){
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem acessar essa função."})
+		return
+	}
+
+	
+	userId := c.Param("id")
+	
+	var userResponse UserResponse
+	var user model.User
+
+	if err := repository.DB.First(&user, "user_id = ?", userId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Erro ao buscar usuário",
+			"causa": err.Error(),
+		})
+		return
+	}
+
+	var newUserType UpdateUserRequest
+
+	if err := c.ShouldBindJSON(&newUserType); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Credenciais incorretas"})
+		return
+	}
+
+
+	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType.UserType).Error; err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":"Erro ao tentar atualizar informações do usuário",
+			"details": err.Error(),
+		})
+		return
+	}
+	userResponse.User_type = user.User_type
+	userResponse.User_id = user.User_id
+	userResponse.Email = user.Email
+	userResponse.Nome = user.Nome
+	userResponse.Matriculas = user.Matriculas
+	userResponse.TurmasProfessor = user.TurmasProfessor
+
+	c.JSON(http.StatusOK, userResponse)
 }

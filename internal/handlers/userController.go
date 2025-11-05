@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -62,11 +61,11 @@ func RegisterUser(c *gin.Context) {
 
 	}
 
-	if strings.HasSuffix(data.Email, "@sempreceub.com") || strings.HasSuffix(data.Email, "@ceub.edu.br"){
+	if strings.HasSuffix(data.Email, "@sempreceub.com") || strings.HasSuffix(data.Email, "@ceub.edu.br") {
 		data.User_type = model.Aluno
-	} else{
-	 	 c.JSON(http.StatusBadRequest, gin.H{"error": "Email não permitido para registro"})
-		 return
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email não permitido para registro"})
+		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -119,8 +118,7 @@ type LoginResponse struct {
 	Nome      string         `json:"nome"`
 	User_type model.UserType `json:"user_type"`
 	Message   string         `json:"message"`
-	Token	  string 		 `json:"token"`
-
+	Token     string         `json:"token"`
 }
 
 // LoginUser godoc
@@ -189,8 +187,7 @@ func LoginUser(c *gin.Context) {
 		Nome:      user.Nome,
 		User_type: user.User_type,
 		Message:   "Login realizado com sucesso!",
-		Token: tokenString,
-
+		Token:     tokenString,
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
@@ -559,8 +556,7 @@ type UpdateUserRequest struct {
 	UserType model.UserType `json:"user_type"`
 }
 
-
-func UpdateUser(c *gin.Context){
+func UpdateUser(c *gin.Context) {
 
 	userType, exists := c.Get("user_type")
 	if !exists {
@@ -573,9 +569,8 @@ func UpdateUser(c *gin.Context){
 		return
 	}
 
-	
 	userId := c.Param("id")
-	
+
 	var userResponse UserResponse
 	var user model.User
 
@@ -594,16 +589,15 @@ func UpdateUser(c *gin.Context){
 		return
 	}
 
-
-	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType.UserType).Error; err != nil{
+	if err := repository.DB.Model(&user).Where("user_id = ?", userId).Update("user_type", newUserType.UserType).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":"Erro ao tentar atualizar informações do usuário",
+			"error":   "Erro ao tentar atualizar informações do usuário",
 			"details": err.Error(),
 		})
 		return
 	}
 	userResponse.User_type = user.User_type
-	userResponse.User_id = user.User_id
+	userResponse.User_id = userId
 	userResponse.Email = user.Email
 	userResponse.Nome = user.Nome
 	userResponse.Matriculas = user.Matriculas

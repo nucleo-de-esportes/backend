@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"github.com/nucleo-de-esportes/backend/internal/model"
 	"github.com/nucleo-de-esportes/backend/internal/repository"
+	"gorm.io/datatypes"
 )
 
 type PresencaRequest struct {
@@ -36,7 +36,7 @@ func ConfirmarPresenca(c *gin.Context) {
 		return
 	}
 
-	aulaId := c.Param("id")
+	aulaId := c.Param("aula_id")
 	var aula model.Aula
 	if err := repository.DB.First(&aula, aulaId).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Aula não encontrada"})
@@ -78,9 +78,9 @@ func ConfirmarPresenca(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Presença atualizada com sucesso",
-		"aula_id": aula.ID,
-		"user_id": uid,
+		"message":  "Presença atualizada com sucesso",
+		"aula_id":  aula.ID,
+		"user_id":  uid,
 		"presente": req.Presente,
 	})
 }

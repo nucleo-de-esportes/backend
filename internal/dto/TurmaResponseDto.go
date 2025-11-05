@@ -25,7 +25,3 @@ type LocalResponseDto struct {
 	Nome   string `json:"nome"`
 	Campus string `json:"campus"`
 }
-
-type ProfessorNomeDto struct {
-	Nome string `json:"nome"`
-}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"time"
 
@@ -30,14 +29,18 @@ import (
 func main() {
 	// Flag para carregar .env
 
-	vars := flag.String("vars", "file", "Define origem das variáveis de ambiente: 'file' (.env) ou 'exported' (sistema).")
-	flag.Parse()
+	//vars := flag.String("vars", "file", "Define origem das variáveis de ambiente: 'file' (.env) ou 'exported' (sistema).")
+	//flag.Parse()
 
 	// Se vars igual a "file", carrega o .env
-	if *vars == "file" {
-		if err := godotenv.Load(); err != nil {
-			log.Fatal("Error loading .env file")
-		}
+	//if *vars == "file" {
+	//	if err := godotenv.Load("../../.env"); err != nil {
+	//		log.Fatal("Error loading .env file")
+	//	}
+	//}
+
+	if err := godotenv.Load("../../dbVariables.env"); err != nil {
+		log.Fatal("Error loading .env file")
 	}
 
 	// Carregar configurações
@@ -60,7 +63,6 @@ func main() {
 
 	turmaRoutes := router.Group("/turmas")
 	cadRoutes := router.Group("/cad")
-	aulaRoutes := router.Group("/aulas")
 
 	cadRoutes.GET("/mod", handlers.GetAllModalidades)
 
@@ -93,8 +95,7 @@ func main() {
 	userRoutes.DELETE(("/delete/:id"), middleware.AuthUser, handlers.DeleteUserById)
 	userRoutes.PUT("/turma/adicionar/professor", handlers.AtribuirProfessor)
 	userRoutes.PUT("/:id", middleware.AuthUser, handlers.UpdateUser)
-
-	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
+	userRoutes.PUT("/aula/:aula_id", middleware.AuthUser, handlers.ConfirmarPresenca)
 
 	// Rotas de professor
 	professorRoutes := router.Group("/professor")

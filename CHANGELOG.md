@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/nucleo-de-esportes/backend/compare/v1.4.1...v1.4.2) (2025-11-12)
+
+
+### Bug Fixes
+
+* tipo de uuid de turmas ([07e2a5d](https://github.com/nucleo-de-esportes/backend/commit/07e2a5d49c4ccfb824c6b35604201ac0a3e0ff1c))
+
 ## [1.4.1](https://github.com/nucleo-de-esportes/backend/compare/v1.4.0...v1.4.1) (2025-11-12)
 
 

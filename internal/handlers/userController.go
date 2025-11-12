@@ -603,7 +603,7 @@ func UpdateUser(c *gin.Context){
 		return
 	}
 	userResponse.User_type = user.User_type
-	userResponse.User_id = user.User_id
+	userResponse.User_id = user.User_id.String()
 	userResponse.Email = user.Email
 	userResponse.Nome = user.Nome
 	userResponse.Matriculas = user.Matriculas

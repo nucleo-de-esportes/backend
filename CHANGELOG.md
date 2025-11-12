@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/nucleo-de-esportes/backend/compare/v1.4.0...v1.4.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* merge conflict in Turma struct definition ([c7131ad](https://github.com/nucleo-de-esportes/backend/commit/c7131ad26f4b7bb36e3a0c8b376515179388d22e))
+
 ## [1.4.0](https://github.com/nucleo-de-esportes/backend/compare/v1.3.1...v1.4.0) (2025-11-04)
 
 

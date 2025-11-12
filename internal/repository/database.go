@@ -43,6 +43,7 @@ func migrate() error {
 		&model.Matricula{},
 		&model.Aula{},
 		&model.Presenca{},
+		&model.Avisos{},
 	)
 }
 

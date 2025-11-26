@@ -30,7 +30,7 @@ func CreateAviso(c *gin.Context) {
 	}
 
 	if userType != model.Admin && userType != model.Professor {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem acessar essa função."})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores e professores podem acessar essa função."})
 		return
 	}
 

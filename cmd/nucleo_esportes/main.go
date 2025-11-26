@@ -66,31 +66,31 @@ func main() {
 	cadRoutes.GET("local", handlers.GetAllLocais)
 
 	// // Rotas de turma, sem middleware nem auth
-	turmaRoutes.POST("", handlers.CreateTurma)
+	turmaRoutes.POST("",middleware.AuthUser, handlers.CreateTurma)
 
-	turmaRoutes.DELETE("/:id", handlers.DeleteTurma)
+	turmaRoutes.DELETE("/:id",middleware.AuthUser, handlers.DeleteTurma)
 
-	turmaRoutes.GET("/:id", handlers.GetTurmaById)
+	turmaRoutes.GET("/:id",middleware.AuthUser, handlers.GetTurmaById)
 
-	turmaRoutes.GET("", handlers.GetAllTurmas)
+	turmaRoutes.GET("",middleware.AuthUser, handlers.GetAllTurmas)
 
-	turmaRoutes.GET("/nextclass/:id", handlers.GetNextClassById)
+	turmaRoutes.GET("/nextclass/:id",middleware.AuthUser, handlers.GetNextClassById)
 
-	turmaRoutes.PUT("/:id", handlers.UpdateTurma)
+	turmaRoutes.PUT("/:id",middleware.AuthUser, handlers.UpdateTurma)
 
 	turmaRoutes.GET("/:id/alunos", middleware.AuthUser, handlers.GetAlunosByTurmaId)
 
 	// Rotas de usuário - temporariamente comentadas para testes
 	userRoutes := router.Group("/user")
 	userRoutes.POST("/register", handlers.RegisterUser)
-	userRoutes.GET("", handlers.GetUsers)
-	userRoutes.GET("/:id", handlers.GetUserById)
+	userRoutes.GET("",middleware.AuthUser, handlers.GetUsers)
+	userRoutes.GET("/:id",middleware.AuthUser, handlers.GetUserById)
 	userRoutes.POST("/login", handlers.LoginUser)
 	userRoutes.POST("/inscricao", middleware.AuthUser, handlers.InscreverAluno)
 	userRoutes.GET("/turmas", middleware.AuthUser, handlers.GetTurmasByUser)
 	userRoutes.DELETE("/:user_id/turma/:turma_id", middleware.AuthUser, handlers.DeleteUserTurma)
 	userRoutes.DELETE(("/delete/:id"), middleware.AuthUser, handlers.DeleteUserById)
-	userRoutes.PUT("/turma/adicionar/professor", handlers.AtribuirProfessor)
+	userRoutes.PUT("/turma/adicionar/professor",middleware.AuthUser, handlers.AtribuirProfessor)
 	userRoutes.PUT("/:id", middleware.AuthUser, handlers.UpdateUser)
 	userRoutes.POST(":turma_id/aviso", middleware.AuthUser, handlers.CreateAviso)
 

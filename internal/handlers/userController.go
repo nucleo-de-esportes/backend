@@ -257,6 +257,18 @@ func InscreverAluno(c *gin.Context) {
 }
 
 func AtribuirProfessor(c *gin.Context) {
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem realizar esta ação."})
+		return
+	}
+
 	var input struct {
 		Turma_id     int64     `json:"turma_id"`
 		Professor_id uuid.UUID `json:"professor_id"`
@@ -392,6 +404,25 @@ func GetTurmasByUser(c *gin.Context) {
 
 func GetUsers(c *gin.Context) {
 
+	loggedUser, exists := c.Get("user_id")
+	if !exists{
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Usuário não autenticado"
+		})
+		return
+	}
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem realizar esta ação."})
+		return
+	}
+
 	var users []model.User
 
 	if err := repository.DB.
@@ -437,6 +468,23 @@ func GetUserById(c *gin.Context) {
 
 	var user model.User
 
+	loggedUser, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
+		return
+	}
+
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem realizar esta ação."})
+		return
+	}
+
 	userId, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -478,6 +526,17 @@ func DeleteUserById(c *gin.Context) {
 
 	var user model.User
 
+	userType, exists := c.Get("user_type")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
+		return
+	}
+
+	if userType != model.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem realizar esta ação."})
+		return
+	}
+
 	userId, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -515,6 +574,14 @@ func DeleteUserById(c *gin.Context) {
 }
 
 func DeleteUserTurma(c *gin.Context) {
+
+	loggedUser, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
+		return
+	}
+
+	
 
 	userId, err := uuid.Parse(c.Param("user_id"))
 	if err != nil {

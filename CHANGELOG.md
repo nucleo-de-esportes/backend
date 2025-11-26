@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/nucleo-de-esportes/backend/compare/v1.5.0...v1.5.1) (2025-11-26)
+
+
+### Bug Fixes
+
+* fixing endpoint's permission ([41b52e3](https://github.com/nucleo-de-esportes/backend/commit/41b52e390c25448273bea0efa90a48b4b2d48ce7))
+
 ## [1.5.0](https://github.com/nucleo-de-esportes/backend/compare/v1.4.2...v1.5.0) (2025-11-26)
 
 

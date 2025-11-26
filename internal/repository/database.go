@@ -1,4 +1,3 @@
-
 package repository
 
 import (
@@ -43,7 +42,6 @@ func migrate() error {
 		&model.Matricula{},
 		&model.Aula{},
 		&model.Presenca{},
-		&model.Avisos{},
+		&model.Aviso{},
 	)
 }
-

@@ -28,14 +28,13 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and a JWT token.
 func main() {
-	// Flag para carregar .env
 
 	vars := flag.String("vars", "file", "Define origem das variáveis de ambiente: 'file' (.env) ou 'exported' (sistema).")
 	flag.Parse()
 
 	// Se vars igual a "file", carrega o .env
 	if *vars == "file" {
-		if err := godotenv.Load(); err != nil {
+		if err := godotenv.Load("../../dbVariables.env"); err != nil {
 			log.Fatal("Error loading .env file")
 		}
 	}
@@ -93,6 +92,7 @@ func main() {
 	userRoutes.DELETE(("/delete/:id"), middleware.AuthUser, handlers.DeleteUserById)
 	userRoutes.PUT("/turma/adicionar/professor", handlers.AtribuirProfessor)
 	userRoutes.PUT("/:id", middleware.AuthUser, handlers.UpdateUser)
+	userRoutes.POST(":turma_id/aviso", middleware.AuthUser, handlers.CreateAviso)
 
 	aulaRoutes.PUT("/:id/presenca", middleware.AuthUser, handlers.ConfirmarPresenca)
 

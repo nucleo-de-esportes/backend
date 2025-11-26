@@ -100,19 +100,19 @@ var configuracoesModalidades = map[string]ConfiguracaoModalidade{
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
-	"Defesa pessoal": {
+	"Defesa Pessoal": {
 		DiasSemana:    []string{"segunda", "quarta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Ginásio bloco 4 campus asa norte",
 	},
-	"Mobilidade e alongamento": {
+	"Mobilidade e Alongamento": {
 		DiasSemana:    []string{"terça", "quinta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
-	"Natação": {
+	"Natacao": {
 		DiasSemana: []string{"segunda", "quarta"},
 		Local:      "Piscina ao lado do bloco 10 campus asa norte",
 		HorariosPermitidos: []HorarioPermitido{
@@ -120,7 +120,7 @@ var configuracoesModalidades = map[string]ConfiguracaoModalidade{
 			{Inicio: "11:50", Fim: "12:40"},
 		},
 	},
-	"Nado livre": {
+	"Nado Livre": {
 		DiasSemana: []string{"segunda", "quarta", "sexta"},
 		Local:      "Piscina",
 

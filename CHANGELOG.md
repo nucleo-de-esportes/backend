@@ -1,3 +1,11 @@
+## [1.5.2](https://github.com/nucleo-de-esportes/backend/compare/v1.5.1...v1.5.2) (2025-11-26)
+
+
+### Bug Fixes
+
+* fixing errors ([2ca362a](https://github.com/nucleo-de-esportes/backend/commit/2ca362a17185aa6749f6af9dc86e289bb09f1f55))
+* fixing errors ([9fe218d](https://github.com/nucleo-de-esportes/backend/commit/9fe218dbdba9da8d0491ba438accc80175230ba7))
+
 ## [1.5.1](https://github.com/nucleo-de-esportes/backend/compare/v1.5.0...v1.5.1) (2025-11-26)
 
 

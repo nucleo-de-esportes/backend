@@ -34,7 +34,7 @@ func main() {
 
 	// Se vars igual a "file", carrega o .env
 	if *vars == "file" {
-		if err := godotenv.Load("../../dbVariables.env"); err != nil {
+		if err := godotenv.Load(); err != nil {
 			log.Fatal("Error loading .env file")
 		}
 	}

@@ -78,6 +78,18 @@ AJUSTANDO O INCREMENT DOS IDS DAS TURMAS, POIS ESTAVA COMEÇANDO COM TURMA DE ID
 ALTER SEQUENCE turma_turma_id_seq RESTART WITH 1;
 
 
+CREATE TABLE avisos(
+    id SERIAL PRIMARY KEY,
+    titulo TEXT NOT NULL,
+    mensagem TEXT NOT NULL,
+    data_envio TIMESTAMP DEFAULT NOW(),
+    status TEXT NOT NULL,
+    tipo_destinatario TEXT NOT NULL CHECK(tipo_destinatario IN ('turma','geral')),
+    destinatario_id BIGINT NOT NULL
+
+);
+
+
 
 
 

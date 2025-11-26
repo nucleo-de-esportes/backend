@@ -1,3 +1,15 @@
+## [1.5.0](https://github.com/nucleo-de-esportes/backend/compare/v1.4.2...v1.5.0) (2025-11-26)
+
+
+### Features
+
+* CreateAviso function, need to fix some errors ([0708b14](https://github.com/nucleo-de-esportes/backend/commit/0708b147f436d8b04dfc4287171d2aa9353c083e))
+
+
+### Bug Fixes
+
+* fixing CreateAviso function ([147109e](https://github.com/nucleo-de-esportes/backend/commit/147109e13c34d1f5ae1cb0903382358856593c01))
+
 ## [1.4.2](https://github.com/nucleo-de-esportes/backend/compare/v1.4.1...v1.4.2) (2025-11-12)
 
 

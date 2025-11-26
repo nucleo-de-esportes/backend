@@ -404,14 +404,6 @@ func GetTurmasByUser(c *gin.Context) {
 
 func GetUsers(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists{
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Usuário não autenticado"
-		})
-		return
-	}
-
 	userType, exists := c.Get("user_type")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
@@ -468,16 +460,9 @@ func GetUserById(c *gin.Context) {
 
 	var user model.User
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
 	userType, exists := c.Get("user_type")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
-		return
+	if !exists{
+		c.JSON(http.StatusNotFound, gin.H{"error": "Tipo de usuário não encontrado."})
 	}
 
 	if userType != model.Admin {
@@ -575,13 +560,6 @@ func DeleteUserById(c *gin.Context) {
 
 func DeleteUserTurma(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
-	
 
 	userId, err := uuid.Parse(c.Param("user_id"))
 	if err != nil {

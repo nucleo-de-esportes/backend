@@ -348,12 +348,6 @@ func DeleteTurma(c *gin.Context) {
 // @Router /turma/{id} [get]
 func GetTurmaById(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
 	userType, exists := c.Get("user_type")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
@@ -430,12 +424,6 @@ func GetTurmaById(c *gin.Context) {
 // @Router /turma [get]
 func GetAllTurmas(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
 	var turmas []model.Turma
 	if err := repository.DB.
 		Preload("Professor").
@@ -503,12 +491,6 @@ func GetAllTurmas(c *gin.Context) {
 // @Router /turma/{id} [put]
 func UpdateTurma(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
 	userType, exists := c.Get("user_type")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tipo de usuário não encontrado"})
@@ -562,12 +544,6 @@ func UpdateTurma(c *gin.Context) {
 
 func GetNextClassById(c *gin.Context) {
 
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
-
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -615,12 +591,6 @@ func GetNextClassById(c *gin.Context) {
 // @Security BearerAuth
 // @Router /turma/{id}/alunos [get]
 func GetAlunosByTurmaId(c *gin.Context) {
-
-	loggedUser, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
-		return
-	}
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {

@@ -88,26 +88,26 @@ type HorarioPermitido struct {
 }
 
 var configuracoesModalidades = map[string]ConfiguracaoModalidade{
-	"Clube de corrida": {
-		DiasSemana:    []string{"segunda", "quarta"},
+	"Clube de Corrida": {
+		DiasSemana:    []string{"Segunda", "Quarta"},
 		HorarioInicio: "06:30",
 		HorarioFim:    "07:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
 	"Voleibol": {
-		DiasSemana:    []string{"terça", "quinta"},
+		DiasSemana:    []string{"Terça", "Quinta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
 	"Defesa Pessoal": {
-		DiasSemana:    []string{"segunda", "quarta"},
+		DiasSemana:    []string{"Segunda", "Quarta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Ginásio bloco 4 campus asa norte",
 	},
 	"Mobilidade e Alongamento": {
-		DiasSemana:    []string{"terça", "quinta"},
+		DiasSemana:    []string{"Terça", "Quinta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",

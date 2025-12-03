@@ -1,3 +1,11 @@
+## [1.5.3](https://github.com/nucleo-de-esportes/backend/compare/v1.5.2...v1.5.3) (2025-12-03)
+
+
+### Bug Fixes
+
+* ajustando a geração de sigla de turma ([5fd2b7c](https://github.com/nucleo-de-esportes/backend/commit/5fd2b7c6c6cf0fd7216748822be4949284878d0d))
+* ajustando nomes de variáveis ([fa33659](https://github.com/nucleo-de-esportes/backend/commit/fa33659649eccb42ae55c144fad5b821c3a756c8))
+
 ## [1.5.2](https://github.com/nucleo-de-esportes/backend/compare/v1.5.1...v1.5.2) (2025-11-26)
 
 

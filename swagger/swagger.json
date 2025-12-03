@@ -12,6 +12,81 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
+        "/aulas/{id}/presenca": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "O aluno autenticado pode confirmar ou remover presença em uma aula específica",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Presença"
+                ],
+                "summary": "Marca ou desmarca a presença de um aluno em uma aula",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da Aula",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Estado da presença",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.PresencaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Presença atualizada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Aula inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Usuário não autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Aula não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao registrar presença",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/cad/local": {
             "get": {
                 "description": "Retorna uma lista com todos os locais cadastrados",
@@ -69,224 +144,6 @@
                 }
             }
         },
-        "/turma": {
-            "get": {
-                "description": "Retorna uma lista com todas as turmas cadastradas",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Turmas"
-                ],
-                "summary": "Lista todas as turmas",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/controller.TurmaResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao buscar turmas",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria uma nova turma com dados como horário, limite de inscritos, dia da semana, local e modalidade.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Turmas"
-                ],
-                "summary": "Cria uma nova turma",
-                "parameters": [
-                    {
-                        "description": "Dados da nova turma",
-                        "name": "turma",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.Turma"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Turma criada com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Credenciais incorretas | Limite de 30 inscritos ultrapassado | Local não encontrado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao buscar nome do local | Erro ao buscar nome da modalidade | Erro interno",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/turma/{id}": {
-            "get": {
-                "description": "Retorna os dados completos de uma turma com base no ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Turmas"
-                ],
-                "summary": "Busca turma por ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID da Turma",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controller.TurmaResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Turma não encontrada",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao buscar a turma | Erro ao tentar localizar local ou modalidade",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza os dados de uma turma existente com base no ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Turmas"
-                ],
-                "summary": "Atualiza uma turma",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID da Turma",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Dados atualizados da turma",
-                        "name": "turma",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.Turma"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Turma atualizada",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/controller.Turma"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Credenciais incorretas | Turma não encontrada",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao tentar atualizar turma",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deleta uma turma pelo ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Turmas"
-                ],
-                "summary": "Deleta uma turma",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID da Turma",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Turma deletada com sucesso!",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Turma não encontrada",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao deletar a turma",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/user/inscricao": {
             "post": {
                 "security": [
@@ -312,7 +169,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.InscricaoRequest"
+                            "$ref": "#/definitions/handlers.InscricaoRequest"
                         }
                     }
                 ],
@@ -361,7 +218,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.LoginRequest"
+                            "$ref": "#/definitions/handlers.LoginRequest"
                         }
                     }
                 ],
@@ -396,59 +253,10 @@
                     }
                 }
             }
-        },
-        "/user/register": {
-            "post": {
-                "description": "Cria um novo usuário com email, senha, tipo e nome",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Usuário"
-                ],
-                "summary": "Registra um novo usuário",
-                "parameters": [
-                    {
-                        "description": "Dados do novo usuário",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.RegisterRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Usuario cadastrado com sucesso",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Credenciais incorretas ou tipo de usuário inválido",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Erro ao tentar cadastrar usuario",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "controller.InscricaoRequest": {
+        "handlers.InscricaoRequest": {
             "type": "object",
             "properties": {
                 "turma_id": {
@@ -456,7 +264,7 @@
                 }
             }
         },
-        "controller.LoginRequest": {
+        "handlers.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -471,80 +279,11 @@
                 }
             }
         },
-        "controller.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "nome",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "nome": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "user_type": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.Turma": {
+        "handlers.PresencaRequest": {
             "type": "object",
             "properties": {
-                "dia_semana": {
-                    "type": "string"
-                },
-                "horario_fim": {
-                    "type": "string"
-                },
-                "horario_inicio": {
-                    "type": "string"
-                },
-                "limite_inscritos": {
-                    "type": "integer"
-                },
-                "local_id": {
-                    "type": "integer"
-                },
-                "modalidade_id": {
-                    "type": "integer"
-                },
-                "sigla": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.TurmaResponse": {
-            "type": "object",
-            "properties": {
-                "dia_semana": {
-                    "type": "string"
-                },
-                "horario_fim": {
-                    "type": "string"
-                },
-                "horario_inicio": {
-                    "type": "string"
-                },
-                "limite_inscritos": {
-                    "type": "integer"
-                },
-                "local": {
-                    "type": "string"
-                },
-                "modalidade": {
-                    "type": "string"
-                },
-                "sigla": {
-                    "type": "string"
-                },
-                "turma_id": {
-                    "type": "integer"
+                "presente": {
+                    "type": "boolean"
                 }
             }
         },
@@ -571,7 +310,10 @@
                 "nome": {
                     "type": "string"
                 },
-                "valor": {
+                "valor_aluno": {
+                    "type": "number"
+                },
+                "valor_professor": {
                     "type": "number"
                 }
             }

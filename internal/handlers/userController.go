@@ -398,8 +398,8 @@ func GetTurmasByUser(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"turmas ministradas": turmasMinistradas,
-		"turmas inscritas": turmasInscritas})
+	c.JSON(http.StatusOK, gin.H{"turmas_ministradas": turmasMinistradas,
+		"turmas_inscritas": turmasInscritas})
 }
 
 func GetUsers(c *gin.Context) {

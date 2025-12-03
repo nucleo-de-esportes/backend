@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/nucleo-de-esportes/backend/compare/v1.5.3...v1.5.4) (2025-12-03)
+
+
+### Bug Fixes
+
+* nome dos atributos ([e2855ed](https://github.com/nucleo-de-esportes/backend/commit/e2855ed9e7be8229f6b21c178c07777954a7d52f))
+
 ## [1.5.3](https://github.com/nucleo-de-esportes/backend/compare/v1.5.2...v1.5.3) (2025-12-03)
 
 

@@ -1,3 +1,10 @@
+## [1.5.5](https://github.com/nucleo-de-esportes/backend/compare/v1.5.4...v1.5.5) (2025-12-03)
+
+
+### Bug Fixes
+
+* ajustando tratamento de nomes das modalidades ([93cf0c2](https://github.com/nucleo-de-esportes/backend/commit/93cf0c23895c8b4fcd04d4f9412c82a7aa5e5d10))
+
 ## [1.5.4](https://github.com/nucleo-de-esportes/backend/compare/v1.5.3...v1.5.4) (2025-12-03)
 
 

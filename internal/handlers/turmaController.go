@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
-
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +44,6 @@ type NomeResponse struct {
 	Nome string `json:"nome"`
 }
 
-// Response structures for GetAlunosByTurmaId endpoint
 type TurmaComAlunosResponse struct {
 	Turma  TurmaInfoResponse   `json:"turma"`
 	Alunos []AlunoInfoResponse `json:"alunos"`
@@ -79,7 +78,7 @@ type ConfiguracaoModalidade struct {
 	HorarioInicio      string
 	HorarioFim         string
 	Local              string
-	HorariosPermitidos []HorarioPermitido // Pra modalidades com varios horarios como nado livre
+	HorariosPermitidos []HorarioPermitido 
 }
 
 type HorarioPermitido struct {
@@ -88,26 +87,26 @@ type HorarioPermitido struct {
 }
 
 var configuracoesModalidades = map[string]ConfiguracaoModalidade{
-	"Clube de corrida": {
-		DiasSemana:    []string{"segunda", "quarta"},
+	"Clube de Corrida": {
+		DiasSemana:    []string{"Segunda", "Quarta"},
 		HorarioInicio: "06:30",
 		HorarioFim:    "07:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
 	"Voleibol": {
-		DiasSemana:    []string{"terça", "quinta"},
+		DiasSemana:    []string{"Terça", "Quinta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",
 	},
 	"Defesa Pessoal": {
-		DiasSemana:    []string{"segunda", "quarta"},
+		DiasSemana:    []string{"Segunda", "Quarta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Ginásio bloco 4 campus asa norte",
 	},
 	"Mobilidade e Alongamento": {
-		DiasSemana:    []string{"terça", "quinta"},
+		DiasSemana:    []string{"Terça", "Quinta"},
 		HorarioInicio: "11:30",
 		HorarioFim:    "12:30",
 		Local:         "Bloco 10 campus asa norte",
@@ -124,21 +123,10 @@ var configuracoesModalidades = map[string]ConfiguracaoModalidade{
 		DiasSemana: []string{"segunda", "quarta", "sexta"},
 		Local:      "Piscina",
 
-		HorariosPermitidos: []HorarioPermitido{}, // Validação diferente
+		HorariosPermitidos: []HorarioPermitido{}, 
 	},
 }
 
-// CreateTurma godoc
-// @Summary Cria uma nova turma
-// @Description Cria uma nova turma com dados como horário, limite de inscritos, dia da semana, local e modalidade.
-// @Tags Turmas
-// @Accept json
-// @Produce json
-// @Param turma body controller.Turma true "Dados da nova turma"
-// @Success 201 {object} map[string]interface{} "Turma criada com sucesso"
-// @Failure 400 {object} map[string]interface{} "Credenciais incorretas | Limite de 30 inscritos ultrapassado | Local não encontrado"
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar nome do local | Erro ao buscar nome da modalidade | Erro interno"
-// @Router /turma [post]
 func CreateTurma(c *gin.Context) {
 
 	var newTurma Turma
@@ -178,7 +166,6 @@ func CreateTurma(c *gin.Context) {
 		return
 	}
 
-	// Verificar se a modalidade escolhida tem horários definidos
 	config, existe := configuracoesModalidades[modalidade.Nome]
 	if !existe {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -200,7 +187,6 @@ func CreateTurma(c *gin.Context) {
 			return
 		}
 	} else if len(config.HorariosPermitidos) > 0 && modalidade.Nome != "Nado livre" {
-		// Verificar se o horário fornecido está na lista de horários permitidos
 		horarioValido := false
 		for _, h := range config.HorariosPermitidos {
 			if newTurma.Horario_Inicio == h.Inicio && newTurma.Horario_Fim == h.Fim {
@@ -216,7 +202,6 @@ func CreateTurma(c *gin.Context) {
 			return
 		}
 	} else if modalidade.Nome == "Nado livre" {
-		// Validacao especial para Nado livre (11h as 20h)
 		if !services.ValidarHorarioNadoLivre(newTurma.Horario_Inicio, newTurma.Horario_Fim) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Horário deve estar entre 11:00 e 20:00",
@@ -225,7 +210,22 @@ func CreateTurma(c *gin.Context) {
 		}
 	}
 
-	// Garante que a turma so sera criada se a aula for criada tambem, caso a aula nao seja criada a turma tambem não será
+	var count int64
+	repository.DB.Model(&model.Turma{}).Where("modalidade_id = ?", newTurma.Modalidade_Id).Count(&count)
+
+	prefix := ""
+	words := strings.Split(modalidade.Nome, " ")
+	for _, word := range words {
+		if len(word) > 0 {
+			prefix += string(word[0])
+		}
+	}
+	if len(prefix) > 3 {
+		prefix = prefix[:3]
+	}
+	prefix = strings.ToUpper(prefix)
+	newTurma.Sigla = fmt.Sprintf("%s-%03d", prefix, count+1)
+
 	tx := repository.DB.Begin()
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao iniciar transação"})
@@ -253,7 +253,6 @@ func CreateTurma(c *gin.Context) {
 		return
 	}
 
-	// Criar aulas para TODOS os dias da semana da modalidade
 	aulasIds := []uint{}
 	for _, diaSemana := range config.DiasSemana {
 		proximaDataAula := services.CalcularProximaAula(diaSemana)
@@ -292,16 +291,6 @@ func CreateTurma(c *gin.Context) {
 	})
 }
 
-// DeleteTurma godoc
-// @Summary Deleta uma turma
-// @Description Deleta uma turma pelo ID
-// @Tags Turmas
-// @Param id path int true "ID da Turma"
-// @Produce json
-// @Success 200 {object} map[string]interface{} "Turma deletada com sucesso!"
-// @Failure 400 {object} map[string]interface{} "Turma não encontrada"
-// @Failure 500 {object} map[string]interface{} "Erro ao deletar a turma"
-// @Router /turma/{id} [delete]
 func DeleteTurma(c *gin.Context) {
 
 	userType, exists := c.Get("user_type")
@@ -336,16 +325,6 @@ func DeleteTurma(c *gin.Context) {
 
 }
 
-// GetTurmaById godoc
-// @Summary Busca turma por ID
-// @Description Retorna os dados completos de uma turma com base no ID
-// @Tags Turmas
-// @Param id path int true "ID da Turma"
-// @Produce json
-// @Success 200 {object} TurmaResponse
-// @Failure 400 {object} map[string]interface{} "Turma não encontrada"
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar a turma | Erro ao tentar localizar local ou modalidade"
-// @Router /turma/{id} [get]
 func GetTurmaById(c *gin.Context) {
 
 	userType, exists := c.Get("user_type")
@@ -414,14 +393,6 @@ func GetTurmaById(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetAllTurmas godoc
-// @Summary Lista todas as turmas
-// @Description Retorna uma lista com todas as turmas cadastradas
-// @Tags Turmas
-// @Produce json
-// @Success 200 {array} TurmaResponse
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar turmas"
-// @Router /turma [get]
 func GetAllTurmas(c *gin.Context) {
 
 	var turmas []model.Turma
@@ -477,18 +448,6 @@ func GetAllTurmas(c *gin.Context) {
 	c.JSON(http.StatusOK, turmasResponse)
 }
 
-// UpdateTurma godoc
-// @Summary Atualiza uma turma
-// @Description Atualiza os dados de uma turma existente com base no ID
-// @Tags Turmas
-// @Accept json
-// @Produce json
-// @Param id path int true "ID da Turma"
-// @Param turma body controller.Turma true "Dados atualizados da turma"
-// @Success 200 {object} []Turma "Turma atualizada"
-// @Failure 400 {object} map[string]interface{} "Credenciais incorretas | Turma não encontrada"
-// @Failure 500 {object} map[string]interface{} "Erro ao tentar atualizar turma"
-// @Router /turma/{id} [put]
 func UpdateTurma(c *gin.Context) {
 
 	userType, exists := c.Get("user_type")
@@ -577,19 +536,6 @@ func GetNextClassById(c *gin.Context) {
 
 }
 
-// GetAlunosByTurmaId godoc
-// @Summary Retorna informações de uma turma e seus alunos
-// @Description Retorna dados completos da turma e lista de alunos matriculados com suas presenças
-// @Tags Turmas
-// @Accept json
-// @Produce json
-// @Param id path int true "ID da Turma"
-// @Success 200 {object} TurmaComAlunosResponse "Turma com lista de alunos"
-// @Failure 400 {object} map[string]interface{} "ID de turma inválido"
-// @Failure 404 {object} map[string]interface{} "Turma não encontrada"
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar dados"
-// @Security BearerAuth
-// @Router /turma/{id}/alunos [get]
 func GetAlunosByTurmaId(c *gin.Context) {
 
 	turmaId, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -601,7 +547,6 @@ func GetAlunosByTurmaId(c *gin.Context) {
 		return
 	}
 
-	// Buscar turma com modalidade e matrículas
 	var turma model.Turma
 	if err := repository.DB.
 		Preload("Modalidade").
@@ -614,7 +559,6 @@ func GetAlunosByTurmaId(c *gin.Context) {
 		return
 	}
 
-	// Contar total de aulas realizadas (que já aconteceram)
 	var qtdAulas int64
 	if err := repository.DB.Model(&model.Aula{}).
 		Where("turma_id = ? AND data_hora < NOW()", turmaId).
@@ -626,7 +570,6 @@ func GetAlunosByTurmaId(c *gin.Context) {
 		return
 	}
 
-	// Montar informações da turma
 	turmaInfo := TurmaInfoResponse{
 		IdTurma:    turma.Turma_id,
 		Modalidade: turma.Modalidade.Nome,
@@ -634,11 +577,9 @@ func GetAlunosByTurmaId(c *gin.Context) {
 		QtdAulas:   qtdAulas,
 	}
 
-	// Processar alunos e suas presenças
 	alunos := make([]AlunoInfoResponse, 0, len(turma.Matriculas))
 
 	for _, matricula := range turma.Matriculas {
-		// Contar presenças do aluno nesta turma (apenas presente=true e aulas realizadas)
 		var presencas int64
 		if err := repository.DB.
 			Table("presencas").
@@ -662,7 +603,6 @@ func GetAlunosByTurmaId(c *gin.Context) {
 		alunos = append(alunos, aluno)
 	}
 
-	// Montar resposta final
 	response := TurmaComAlunosResponse{
 		Turma:  turmaInfo,
 		Alunos: alunos,
@@ -671,7 +611,6 @@ func GetAlunosByTurmaId(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Structs para o endpoint GET /professor/{id_professor}/aulas
 type AulaProfessorResponse struct {
 	IdAula     uint   `json:"id_aula"`
 	IdTurma    int64  `json:"id_turma"`
@@ -686,20 +625,6 @@ type AulasProfessorResponse struct {
 	Aulas []AulaProfessorResponse `json:"aulas"`
 }
 
-// GetAulasByProfessor retorna as aulas de um professor em uma data específica
-// @Summary Listar aulas de um professor
-// @Description Retorna as aulas do professor no dia especificado (ou dia atual se não informado)
-// @Tags Professor
-// @Accept json
-// @Produce json
-// @Param id path string true "ID do professor (UUID)"
-// @Param dia query string false "Data das aulas (formato: 2006-01-02). Se não informado, retorna aulas do dia atual"
-// @Success 200 {object} AulasProfessorResponse "Lista de aulas do professor"
-// @Failure 400 {object} map[string]interface{} "ID de professor inválido ou data inválida"
-// @Failure 404 {object} map[string]interface{} "Professor não encontrado"
-// @Failure 500 {object} map[string]interface{} "Erro ao buscar aulas"
-// @Security BearerAuth
-// @Router /professor/{id}/aulas [get]
 func GetAulasByProfessor(c *gin.Context) {
 	professorId := c.Param("id")
 	if professorId == "" {
@@ -709,7 +634,6 @@ func GetAulasByProfessor(c *gin.Context) {
 		return
 	}
 
-	// Validar UUID do professor
 	var professor model.User
 	if err := repository.DB.Where("user_id = ? AND user_type = ?", professorId, model.Professor).First(&professor).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -718,7 +642,6 @@ func GetAulasByProfessor(c *gin.Context) {
 		return
 	}
 
-	// Parse da data (parâmetro opcional "dia")
 	diaParam := c.Query("dia")
 	dataInicio, dataFim, err := services.ParseDateParam(diaParam)
 	if err != nil {
@@ -729,7 +652,6 @@ func GetAulasByProfessor(c *gin.Context) {
 		return
 	}
 
-	// Buscar turmas do professor
 	var turmas []model.Turma
 	if err := repository.DB.Where("professor_id = ?", professorId).Find(&turmas).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -739,19 +661,16 @@ func GetAulasByProfessor(c *gin.Context) {
 		return
 	}
 
-	// Extrair IDs das turmas
 	turmaIds := make([]int64, len(turmas))
 	for i, turma := range turmas {
 		turmaIds[i] = turma.Turma_id
 	}
 
-	// Se não tem turmas, retornar array vazio
 	if len(turmaIds) == 0 {
 		c.JSON(http.StatusOK, AulasProfessorResponse{Aulas: []AulaProfessorResponse{}})
 		return
 	}
 
-	// Buscar aulas do professor na data especificada
 	var aulas []model.Aula
 	if err := repository.DB.
 		Preload("Turma.Modalidade").
@@ -766,7 +685,6 @@ func GetAulasByProfessor(c *gin.Context) {
 		return
 	}
 
-	// Montar resposta
 	aulasResponse := make([]AulaProfessorResponse, 0, len(aulas))
 	for _, aula := range aulas {
 		aulaResp := AulaProfessorResponse{

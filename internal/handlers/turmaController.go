@@ -166,10 +166,24 @@ func CreateTurma(c *gin.Context) {
 		return
 	}
 
-	config, existe := configuracoesModalidades[modalidade.Nome]
+	var config ConfiguracaoModalidade
+	var existe bool
+
+	config, existe = configuracoesModalidades[modalidade.Nome]
+
+	if !existe {
+		for chave, valor := range configuracoesModalidades {
+			if strings.EqualFold(strings.TrimSpace(chave), strings.TrimSpace(modalidade.Nome)) {
+				config = valor
+				existe = true
+				break
+			}
+		}
+	}
+
 	if !existe {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Modalidade não possui horários configurados",
+			"error": fmt.Sprintf("Modalidade '%s' não possui configuração correspondente no sistema.", modalidade.Nome),
 		})
 		return
 	}
@@ -186,7 +200,7 @@ func CreateTurma(c *gin.Context) {
 			})
 			return
 		}
-	} else if len(config.HorariosPermitidos) > 0 && modalidade.Nome != "Nado livre" {
+	} else if len(config.HorariosPermitidos) > 0 && !strings.EqualFold(modalidade.Nome, "Nado livre") {
 		horarioValido := false
 		for _, h := range config.HorariosPermitidos {
 			if newTurma.Horario_Inicio == h.Inicio && newTurma.Horario_Fim == h.Fim {
@@ -201,7 +215,7 @@ func CreateTurma(c *gin.Context) {
 			})
 			return
 		}
-	} else if modalidade.Nome == "Nado livre" {
+	} else if strings.EqualFold(modalidade.Nome, "Nado livre") {
 		if !services.ValidarHorarioNadoLivre(newTurma.Horario_Inicio, newTurma.Horario_Fim) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Horário deve estar entre 11:00 e 20:00",
@@ -515,21 +529,19 @@ func GetNextClassById(c *gin.Context) {
 	var aula model.Aula
 
 	if err := repository.DB.Where("turma_id = ? AND data_hora > NOW()", turmaId).Order("data_hora ASC").First(&aula).Error; err != nil {
-
+		
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "Nenhuma aula encontrada para esta turma",
 			})
+			return 
 		}
-		return
-	}
 
-	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Erro ao tentar encontrar proxima aula",
 			"details": err.Error(),
 		})
-		return
+		return 
 	}
 
 	c.JSON(200, aula)

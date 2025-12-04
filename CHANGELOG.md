@@ -1,3 +1,10 @@
+## [1.5.6](https://github.com/nucleo-de-esportes/backend/compare/v1.5.5...v1.5.6) (2025-12-04)
+
+
+### Bug Fixes
+
+* ajustando deleteTurma ([5fc6c76](https://github.com/nucleo-de-esportes/backend/commit/5fc6c760a70c5625c4c60be1cf916357fe82647a))
+
 ## [1.5.5](https://github.com/nucleo-de-esportes/backend/compare/v1.5.4...v1.5.5) (2025-12-03)
 
 

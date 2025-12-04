@@ -313,7 +313,7 @@ func DeleteTurma(c *gin.Context) {
 		return
 	}
 
-	if userType != "admin" {
+	if userType != model.Admin {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Permissão negada. Apenas administradores podem deletar turmas."})
 		return
 	}
@@ -493,7 +493,6 @@ func UpdateTurma(c *gin.Context) {
 		"horario_fim":      newTurma.Horario_Fim,
 		"limite_inscritos": newTurma.LimiteInscritos,
 		"dia_semana":       newTurma.Dia_Semana,
-		"sigla":            newTurma.Sigla,
 		"local_id":         newTurma.Local_Id,
 		"modalidade_id":    newTurma.Modalidade_Id,
 	}).Error; err != nil {

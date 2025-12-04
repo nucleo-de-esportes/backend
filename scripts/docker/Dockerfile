@@ -1,42 +1,39 @@
 # Fase 1: Setup
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24 AS builder
 
-# Instalar dependências necessárias
-RUN apk --no-cache add git ca-certificates tzdata
+# Variáveis para binário estático
+ENV CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64
 
-RUN update-ca-certificates
-
-# Diretório de trabalho
 WORKDIR /app
 
-# Copiar os arquivos de mod para baixar dependências
+# Copia apenas go.mod/go.sum para cache de dependências
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copiar o código da aplicação
+# Copia o restante do código
 COPY . .
 
-# Criar o diretório bin para armazenar o binário
-RUN mkdir -p /app/bin
+# Compila o binário
+RUN go build -o api ./cmd/nucleo_esportes/
 
-# Fase 3: Application Build
-FROM builder AS build
+# Fase 2: Imagem final
+FROM debian:bookworm-slim AS final
 
-# Compilar a aplicação Go para um binário pequeno e otimizado
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o /app/bin/api ./cmd/nucleo_esportes/
+# Criar diretório e usuário sem privilégios
+RUN useradd -m appuser
 
-# Fase 3: Imagem final
-FROM scratch AS final
-
-# Copiar o binário da fase de build
-COPY --from=build /app/bin/api /app/api
-COPY --from=build /etc/ssl/certs /etc/ssl/certs
-COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
-
-# Configurar permissões e diretório de trabalho
 WORKDIR /app
 
-# Expor a porta da API
+# Copiar apenas o binário
+COPY --from=builder /app/api /app/api
+
+# Permissões
+RUN chown -R appuser:appuser /app
+
+USER appuser
+
 EXPOSE 8080
 
 # Definir o entrypoint

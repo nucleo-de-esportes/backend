@@ -1,3 +1,10 @@
+## [1.5.7](https://github.com/nucleo-de-esportes/backend/compare/v1.5.6...v1.5.7) (2025-12-04)
+
+
+### Bug Fixes
+
+* alterado imagens utilizadas no Dockerfile ([9293807](https://github.com/nucleo-de-esportes/backend/commit/9293807a8b3f28be3df00dc7643809cc979b69cc))
+
 ## [1.5.6](https://github.com/nucleo-de-esportes/backend/compare/v1.5.5...v1.5.6) (2025-12-04)
 
 
